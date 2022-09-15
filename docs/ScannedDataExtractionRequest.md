@@ -1,0 +1,3 @@
+# ScannedDataExtractionRequest
+
+## GET

@@ -1,0 +1,16 @@
+.DS_Store
+.idea/
+velocity.log*
+pom.xml*
+!pom.xml
+**/.classpath
+**/.factorypath
+**/.project
+**/.settings
+**/*.ipr
+**/*.iws
+**/*.prefs
+**/target
+**/*.iml
+**/*.log
+**/*.log.*
