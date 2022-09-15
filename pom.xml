@@ -23,7 +23,7 @@
         <oauth1-signer.version>1.2.1</oauth1-signer.version>
         <swagger-parser.version>2.0.18</swagger-parser.version>
         <client-encryption-version>1.4.0</client-encryption-version>
-        <openapi-generator.version>4.2.3</openapi-generator.version>
+        <openapi-generator.version>5.1.0</openapi-generator.version>
     </properties>
 
     <dependencies>
