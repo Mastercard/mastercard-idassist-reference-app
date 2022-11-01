@@ -24,6 +24,8 @@
         <client-encryption-version>1.7.5</client-encryption-version>
         <openapi-generator.version>6.1.0</openapi-generator.version>
         <javax-ws-version>2.1.1</javax-ws-version>
+        <sonar.organization>mastercard</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <dependencies>
