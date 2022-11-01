@@ -1,9 +1,9 @@
 # Mastercard ID Verification Reference Implementation
 
 [![](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
-[![](https://sonarcloud.io/api/project_badges/measure?project=Mastercard_client-encryption-ruby&metric=alert_status)](https://sonarcloud.io/dashboard?id=Mastercard_client-encryption-ruby)
-[![](https://sonarcloud.io/api/project_badges/measure?project=Mastercard_client-encryption-ruby&metric=coverage)](https://sonarcloud.io/dashboard?id=Mastercard_client-encryption-ruby)
-[![](https://sonarcloud.io/api/project_badges/measure?project=Mastercard_client-encryption-ruby&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=Mastercard_client-encryption-ruby)
+[![](https://sonarcloud.io/api/project_badges/measure?project=Mastercard_client-encryption-ruby&metric=alert_status)](https://sonarcloud.io/dashboard?id=mastercard-idassist-reference)
+[![](https://sonarcloud.io/api/project_badges/measure?project=Mastercard_client-encryption-ruby&metric=coverage)](https://sonarcloud.io/dashboard?id=mastercard-idassist-reference)
+[![](https://sonarcloud.io/api/project_badges/measure?project=Mastercard_client-encryption-ruby&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=mastercard-idassist-reference)
 [![](https://img.shields.io/badge/license-MIT-yellow.svg)](https://github.com/Mastercard/mastercard-idassist-reference/blob/master/LICENSE)
 
 ## Table of Contents
