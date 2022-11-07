@@ -72,7 +72,8 @@ public class UserServiceImplTest {
         when(userApi.identityAPI(eq(new IdentityPrefill()))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
-        Assertions.assertThrows(ServiceException.class, () -> userService.create(new IdentityPrefill()));
+        IdentityPrefill identityPrefill = new IdentityPrefill();
+        Assertions.assertThrows(ServiceException.class, () -> userService.create(identityPrefill));
 
         verify(userApi, times(1)).identityAPI(eq(new IdentityPrefill()));
     }
@@ -95,7 +96,8 @@ public class UserServiceImplTest {
         when(userApi.identityVerificationAPI(eq(new IdentityVerificationUserInfo()))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
-        Assertions.assertThrows(ServiceException.class, () -> userService.createUserVerification(new IdentityVerificationUserInfo()));
+        IdentityVerificationUserInfo identityVerificationUserInfo = new IdentityVerificationUserInfo();
+        Assertions.assertThrows(ServiceException.class, () -> userService.createUserVerification(identityVerificationUserInfo));
 
         verify(userApi, times(1)).identityVerificationAPI(eq(new IdentityVerificationUserInfo()));
     }
@@ -115,7 +117,8 @@ public class UserServiceImplTest {
         when(userApi.trustAPI(eq(new TrustScoreUserInfo()))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
-        Assertions.assertThrows(ServiceException.class, () -> userService.trust(new TrustScoreUserInfo()));
+        TrustScoreUserInfo trustScoreUserInfo  = new TrustScoreUserInfo();
+        Assertions.assertThrows(ServiceException.class, () -> userService.trust(trustScoreUserInfo));
 
         verify(userApi, times(1)).trustAPI(eq(new TrustScoreUserInfo()));
     }

@@ -27,10 +27,9 @@ public class DeviceAuthenticationExample {
     public static DeviceIpAddress getDeviceIpAddress() {
         //Update the ip address when trying to run this test case.
         DeviceIpAddress deviceIpAddress = new DeviceIpAddress();
-        deviceIpAddress.setDeviceIp("192.168.1.1");
+        deviceIpAddress.setDeviceIp("127.0.0.1");
         deviceIpAddress.setCountryCode("US");
         deviceIpAddress.setOptedInConsentStatus(true);
-
         return deviceIpAddress;
     }
 

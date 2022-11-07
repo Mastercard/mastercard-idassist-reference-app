@@ -72,7 +72,8 @@ public class IdVerifyUserServiceImplTest {
         when(idVerifyUserApi.userIdentity(eq(new IdentityPrefill()), eq(true))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
-        Assertions.assertThrows(ServiceException.class, () -> idVerifyUserService.userIdentity(new IdentityPrefill()));
+        IdentityPrefill identityPrefill = new IdentityPrefill();
+        Assertions.assertThrows(ServiceException.class, () -> idVerifyUserService.userIdentity(identityPrefill));
 
         verify(idVerifyUserApi, times(1)).userIdentity(eq(new IdentityPrefill()), eq(true));
     }
@@ -95,7 +96,8 @@ public class IdVerifyUserServiceImplTest {
         when(idVerifyUserApi.identityVerification(eq(new IdentityVerificationUserInfo()), eq(true))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
-        Assertions.assertThrows(ServiceException.class, () -> idVerifyUserService.identityVerification(new IdentityVerificationUserInfo()));
+        IdentityVerificationUserInfo identityVerificationUserInfo = new IdentityVerificationUserInfo();
+        Assertions.assertThrows(ServiceException.class, () -> idVerifyUserService.identityVerification(identityVerificationUserInfo));
 
         verify(idVerifyUserApi, times(1)).identityVerification(eq(new IdentityVerificationUserInfo()), eq(true));
     }
@@ -115,7 +117,8 @@ public class IdVerifyUserServiceImplTest {
         when(idVerifyUserApi.userTrustScore(eq(new TrustScoreUserInfo()), eq(true))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
-        Assertions.assertThrows(ServiceException.class, () -> idVerifyUserService.userTrustScore(new TrustScoreUserInfo()));
+        TrustScoreUserInfo trustScoreUserInfo = new TrustScoreUserInfo();
+        Assertions.assertThrows(ServiceException.class, () -> idVerifyUserService.userTrustScore(trustScoreUserInfo));
 
         verify(idVerifyUserApi, times(1)).userTrustScore(eq(new TrustScoreUserInfo()), eq(true));
     }

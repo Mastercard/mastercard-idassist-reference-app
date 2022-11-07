@@ -29,7 +29,7 @@ public class IdVerifyDeviceAuthenticationExample {
         DeviceIpAddress deviceIpAddress = new DeviceIpAddress();
         deviceIpAddress.setOptedInConsentStatus(true);
         deviceIpAddress.setCountryCode("US");
-        deviceIpAddress.setDeviceIp("192.168.1.1");
+        deviceIpAddress.setDeviceIp("127.0.0.1");
         return deviceIpAddress;
     }
 

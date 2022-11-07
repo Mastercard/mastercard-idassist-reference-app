@@ -71,7 +71,8 @@ public class DeviceAuthenticationImplTest {
         when(deviceAuthenticationApi.deviceAuthentication(eq(new DeviceIpAddress()))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
-        Assertions.assertThrows(ServiceException.class, () -> deviceAuthenticationService.createDeviceAuthentication(new DeviceIpAddress()));
+        DeviceIpAddress deviceIpAddress = new DeviceIpAddress();
+        Assertions.assertThrows(ServiceException.class, () -> deviceAuthenticationService.createDeviceAuthentication(deviceIpAddress));
 
         verify(deviceAuthenticationApi, times(1)).deviceAuthentication(eq(new DeviceIpAddress()));
     }
@@ -94,7 +95,8 @@ public class DeviceAuthenticationImplTest {
         when(deviceAuthenticationApi.deviceAuthenticationVerification(eq(new DeviceVerificationFingerprint()))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
-        Assertions.assertThrows(ServiceException.class, () -> deviceAuthenticationService.createDeviceAuthenticationVerification(new DeviceVerificationFingerprint()));
+        DeviceVerificationFingerprint deviceVerificationFingerprint = new DeviceVerificationFingerprint();
+        Assertions.assertThrows(ServiceException.class, () -> deviceAuthenticationService.createDeviceAuthenticationVerification(deviceVerificationFingerprint));
 
         verify(deviceAuthenticationApi, times(1)).deviceAuthenticationVerification(eq(new DeviceVerificationFingerprint()));
     }

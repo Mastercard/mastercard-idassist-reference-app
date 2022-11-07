@@ -70,7 +70,8 @@ public class SmsOtpServiceImplTest {
         when(otpApi.createOtpsSMS(eq(new SMSOTPGeneration()))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
-        Assertions.assertThrows(ServiceException.class, () -> smsOtpService.createOtpsSMS(new SMSOTPGeneration()));
+        SMSOTPGeneration smsOTPGeneration = new SMSOTPGeneration();
+        Assertions.assertThrows(ServiceException.class, () -> smsOtpService.createOtpsSMS(smsOTPGeneration));
 
         verify(otpApi, times(1)).createOtpsSMS(eq(new SMSOTPGeneration()));
     }
@@ -92,7 +93,8 @@ public class SmsOtpServiceImplTest {
         when(otpApi.verifyOtps(eq(new SMSOTPVerification()))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
-        Assertions.assertThrows(ServiceException.class, () -> smsOtpService.createVerifyOtps(new SMSOTPVerification()));
+        SMSOTPVerification smsOTPVerification =  new SMSOTPVerification();
+        Assertions.assertThrows(ServiceException.class, () -> smsOtpService.createVerifyOtps(smsOTPVerification));
 
         verify(otpApi, times(1)).verifyOtps(eq(new SMSOTPVerification()));
     }

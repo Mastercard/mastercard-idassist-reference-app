@@ -70,8 +70,8 @@ public class IdVerifyDeviceAuthenticationImplTest {
     public void testcreateDeviceAuthenticationError() throws ApiException {
         when(idVerifyDeviceAuthenticationApi.deviceAuthentication(eq(new DeviceIpAddress()), eq(true))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
-
-        Assertions.assertThrows(ServiceException.class, () -> idVerifyDeviceAuthenticationService.deviceAuthentication(new DeviceIpAddress()));
+        DeviceIpAddress deviceIpAddress  =  new DeviceIpAddress();
+        Assertions.assertThrows(ServiceException.class, () -> idVerifyDeviceAuthenticationService.deviceAuthentication(deviceIpAddress));
 
         verify(idVerifyDeviceAuthenticationApi, times(1)).deviceAuthentication(eq(new DeviceIpAddress()), eq(true));
     }
@@ -93,8 +93,8 @@ public class IdVerifyDeviceAuthenticationImplTest {
     public void testcreateDeviceAuthenticationVerificationError() throws ServiceException, ApiException {
         when(idVerifyDeviceAuthenticationApi.deviceAuthenticationVerification(eq(new DeviceVerificationFingerprint()), eq(true))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
-
-        Assertions.assertThrows(ServiceException.class, () -> idVerifyDeviceAuthenticationService.deviceAuthenticationVerification(new DeviceVerificationFingerprint()));
+        DeviceVerificationFingerprint deviceVerificationFingerprint = new DeviceVerificationFingerprint();
+        Assertions.assertThrows(ServiceException.class, () -> idVerifyDeviceAuthenticationService.deviceAuthenticationVerification(deviceVerificationFingerprint));
 
         verify(idVerifyDeviceAuthenticationApi, times(1)).deviceAuthenticationVerification(eq(new DeviceVerificationFingerprint()), eq(true));
     }

@@ -24,9 +24,9 @@ import lombok.NoArgsConstructor;
 public class AccessTokenExample {
 
     private static final String JUMIO_API_DATACENTER = "US";
-    private static final String SDK_TOKEN = "1a67635c-f384-11ea-adc1-0242ac120002";
+    private static final String SDK_TOKEN = "SDK_TOKEN_VALUE";
     private static final String TRANSACTION_ID = "testTransactionId";
-    private static final String DOCUMENT_VERIFICATION_URL = "https://mastercard.web.apac-1.jumio.link/web/v4/app?authorizationToken=eyJhbGciOiJIUzUxMiIsInppcCI6IkdaSVAifQ.H4sIAAAAAAAAAJXOQQ5CIQxF0b0wtkmBFqgzh07_Dkp_iWM10cS4d0FX4PTm5OW9gj9P93AMsaRaS845CVM4BDU776sLi5JGiM06UGGDLiUCRaLa0rDR6uJf7FH6mBwYtUyCBcSywBznbmMfGdPEj-H_cNt8TL35zfVql1V-12o0SZ3AGysQ1wKNFCGbsjlyUsTw_gANOZ5b4gAAAA.2bo6KfOvGIswNRNTXv6QtoGvHyNYp_j3LwHia9DtuWna3y_LLI1VgPZle46Q5cFHuuMJB7g7y4wHbtogBX2HfQ&locale=en-US";
+    private static final String DOCUMENT_VERIFICATION_URL = "DOCUMENT_VERIFICATION_URL_VALUE";
 
     public static AccessToken createAccessToken() {
         AccessToken accessToken = new AccessToken();
