@@ -27,6 +27,9 @@
         <sonar.organization>mastercard</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.projectKey>Mastercard_mastercard-idassist-reference</sonar.projectKey>
+        <sonar.coverage.exclusions>
+            **/com/mastercard/developer/example/*
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
@@ -186,7 +189,13 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.6</version>
-              
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            com.mastercard.developer.example.*
+                        </exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
