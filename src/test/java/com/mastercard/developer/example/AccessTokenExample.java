@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 public class AccessTokenExample {
 
     private static final String JUMIO_API_DATACENTER = "US";
-    private static final String SDK_TOKEN = "1a67635c-f384-11ea-adc1-0242ac120002";
+    private static final String SDK_TOKEN = "SDK_TOKEN_VALUE";
     private static final String TRANSACTION_ID = "testTransactionId";
 
     public static AccessToken createAccessToken() {
