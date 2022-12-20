@@ -29,6 +29,7 @@
         <sonar.projectKey>Mastercard_mastercard-idassist-reference</sonar.projectKey>
         <sonar.coverage.exclusions>
             **/com/mastercard/developer/example/*
+            **/com/mastercard/developer/config/*
         </sonar.coverage.exclusions>
     </properties>
 
