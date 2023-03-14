@@ -14,3 +14,6 @@ pom.xml*
 **/*.iml
 **/*.log
 **/*.log.*
+src/main/resources/mastercard-id-assistClientEnc1678341427.pem
+src/main/resources/keyalias-encryption-mc.p12
+src/main/resources/IDV-sandbox.p12
