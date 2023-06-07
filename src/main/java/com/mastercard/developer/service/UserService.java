@@ -16,18 +16,18 @@ limitations under the License.
 
 package com.mastercard.developer.service;
 
-import com.mastercard.dis.mids.model.Identity;
-import com.mastercard.dis.mids.model.IdentityPrefill;
-import com.mastercard.dis.mids.model.IdentityVerification;
-import com.mastercard.dis.mids.model.IdentityVerificationUserInfo;
-import com.mastercard.dis.mids.model.TrustScore;
-import com.mastercard.dis.mids.model.TrustScoreUserInfo;
+import com.mastercard.dis.mids.model.id.verification.Identity;
+import com.mastercard.dis.mids.model.id.verification.IdentityPrefill;
+import com.mastercard.dis.mids.model.id.verification.IdentityVerification;
+import com.mastercard.dis.mids.model.id.verification.IdentityVerificationUserInfo;
+import com.mastercard.dis.mids.model.id.verification.TrustScore;
+import com.mastercard.dis.mids.model.id.verification.TrustScoreUserInfo;
 
 public interface UserService {
 
-    Identity create(IdentityPrefill identityPrefill);
+    Identity userIdentity(IdentityPrefill identityPrefill);
 
-    IdentityVerification createUserVerification(IdentityVerificationUserInfo identityVerificationUserInfo);
+    IdentityVerification identityVerification(IdentityVerificationUserInfo identityVerificationUserInfo);
 
-    TrustScore trust(TrustScoreUserInfo request);
+    TrustScore userTrustScore(TrustScoreUserInfo trustScoreUserInfo);
 }

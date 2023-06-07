@@ -20,15 +20,17 @@ import com.mastercard.developer.example.SourceVerificationMedicareExample;
 import com.mastercard.developer.exception.ExceptionUtil;
 import com.mastercard.developer.exception.ServiceException;
 import com.mastercard.dis.mids.ApiException;
-import com.mastercard.dis.mids.api.IdDocumentVerificationApi;
-import com.mastercard.dis.mids.model.Error;
+import com.mastercard.dis.mids.api.IdDocumentDataSourceVerificationApi;
+import com.mastercard.dis.mids.model.id.verification.Errors;
 import com.mastercard.dis.mids.model.id.verification.MedicareCardSourceVerificationRequestAttributes;
 import com.mastercard.dis.mids.model.id.verification.MedicareCardSourceVerificationResult;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static com.mastercard.developer.example.SourceVerificationExample.DOCUMENT_ISSUING_COUNTRY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,34 +39,40 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class SourceVerificationMedicareServiceImplTest {
+class SourceVerificationMedicareServiceImplTest {
 
     @Mock
     private ExceptionUtil exceptionUtil;
 
     @Mock
-    private IdDocumentVerificationApi idDocumentVerificationApi;
+    private IdDocumentDataSourceVerificationApi idDocumentVerificationApi;
 
     @InjectMocks
     private MedicareSourceVerificationServiceImpl medicareDocumentVerificationService;
 
-    @Test
-    void sourceVerificationMedicareCard_sourceVerificationApiNoException_returningVerifiedResult() throws ApiException {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void sourceVerificationMedicareCard_sourceVerificationApiNoException_returningVerifiedResult(boolean encrypt) throws ApiException {
+        ReflectionTestUtils.setField(medicareDocumentVerificationService, "encryptionEnabled", encrypt);
+
         MedicareCardSourceVerificationRequestAttributes sourceVerificationMedicareAttributes = SourceVerificationMedicareExample.createSourceVerificationMedicareCardRequestAttributes();
         MedicareCardSourceVerificationResult sourceVerificationMedicareExample = SourceVerificationMedicareExample.createSourceVerificationMedicareCardResponse();
-        when(idDocumentVerificationApi.verifyMedicareCard(eq(DOCUMENT_ISSUING_COUNTRY), eq(sourceVerificationMedicareAttributes), eq(false))).thenReturn(sourceVerificationMedicareExample);
+        when(idDocumentVerificationApi.verifyMedicareCard(eq(DOCUMENT_ISSUING_COUNTRY), eq(sourceVerificationMedicareAttributes), eq(encrypt))).thenReturn(sourceVerificationMedicareExample);
 
         MedicareCardSourceVerificationResult medicareVerificationResult = medicareDocumentVerificationService.createMedicareCardRequest(DOCUMENT_ISSUING_COUNTRY, sourceVerificationMedicareAttributes);
         assertEquals(sourceVerificationMedicareExample, medicareVerificationResult);
 
     }
 
-    @Test
-    void sourceVerificationMedicareCard_sourceVerificationApiException_logAndConvertToServiceException() throws ApiException {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void sourceVerificationMedicareCard_sourceVerificationApiException_logAndConvertToServiceException(boolean encrypt) throws ApiException {
+        ReflectionTestUtils.setField(medicareDocumentVerificationService, "encryptionEnabled", encrypt);
+
         MedicareCardSourceVerificationRequestAttributes sourceVerificationMedicareAttributes = SourceVerificationMedicareExample.createSourceVerificationMedicareCardRequestAttributes();
         ApiException apiException = new ApiException();
-        ServiceException serviceException = new ServiceException(apiException, new Error());
-        doThrow(apiException).when(idDocumentVerificationApi).verifyMedicareCard(eq(DOCUMENT_ISSUING_COUNTRY), eq(sourceVerificationMedicareAttributes), eq(false));
+        ServiceException serviceException = new ServiceException(apiException, new Errors());
+        doThrow(apiException).when(idDocumentVerificationApi).verifyMedicareCard(eq(DOCUMENT_ISSUING_COUNTRY), eq(sourceVerificationMedicareAttributes), eq(encrypt));
         when(exceptionUtil.logAndConvertToServiceException(eq(apiException))).thenReturn(serviceException);
 
         try {
@@ -73,5 +81,4 @@ public class SourceVerificationMedicareServiceImplTest {
             assertEquals(serviceException, e);
         }
     }
-
 }

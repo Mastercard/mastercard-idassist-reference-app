@@ -16,26 +16,31 @@ limitations under the License.
 
 package com.mastercard.developer.exception;
 
-import com.mastercard.dis.mids.model.Error;
+import com.mastercard.dis.mids.model.id.verification.ApiError;
+import com.mastercard.dis.mids.model.id.verification.Errors;
 import lombok.Getter;
 
 @Getter
 public class ServiceException extends RuntimeException {
 
-    private final transient Error errors = new Error();
+    private final transient Errors errors = new Errors();
 
     public ServiceException(String message) {
         super(message);
     }
 
-    public ServiceException(String message, Error serviceErrors) {
+    public ServiceException(String message, Errors serviceErrors) {
         super(message);
-        errors.setErrors(serviceErrors.getErrors());
+        errors.setError(serviceErrors.getError());
     }
 
-    public ServiceException(Exception e, Error serviceErrors) {
+    public ServiceException(Exception e, Errors serviceErrors) {
         super(e);
-        errors.setErrors(serviceErrors.getErrors());
+        errors.setError(serviceErrors.getError());
     }
 
+    public ServiceException(Exception e, ApiError deserializeErrors) {
+        super(e);
+        errors.setError(deserializeErrors.getErrors().getError());
+    }
 }

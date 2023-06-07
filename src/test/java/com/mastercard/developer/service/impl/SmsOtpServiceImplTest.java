@@ -19,32 +19,34 @@ package com.mastercard.developer.service.impl;
 import com.mastercard.developer.exception.ExceptionUtil;
 import com.mastercard.developer.exception.ServiceException;
 import com.mastercard.dis.mids.ApiException;
-import com.mastercard.dis.mids.api.OtpApi;
-import com.mastercard.dis.mids.model.SMSOTP;
-import com.mastercard.dis.mids.model.SMSOTPGeneration;
-import com.mastercard.dis.mids.model.SMSOTPVerification;
-import com.mastercard.dis.mids.model.SMSOTPVerificationResult;
+import com.mastercard.dis.mids.api.SmsOtpApi;
+import com.mastercard.dis.mids.model.id.verification.Otp;
+import com.mastercard.dis.mids.model.id.verification.OtpVerification;
+import com.mastercard.dis.mids.model.id.verification.OtpVerificationResult;
+import com.mastercard.dis.mids.model.id.verification.SMSOtp;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
-public class SmsOtpServiceImplTest {
+class SmsOtpServiceImplTest {
 
     @Mock
-    private OtpApi otpApi;
+    private SmsOtpApi otpApi;
 
     @Mock
     private ExceptionUtil exceptionUtil;
@@ -52,64 +54,74 @@ public class SmsOtpServiceImplTest {
     @InjectMocks
     private SmsOtpServiceImpl smsOtpService;
 
-    @Test
-    public void testCreateOtpsSMS() throws ServiceException, ApiException {
-        when(otpApi.createOtpsSMS(eq(new SMSOTPGeneration()))).thenReturn(getSMSOTP());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testCreateOtpSMS(boolean encrypt) throws ServiceException, ApiException {
+        ReflectionTestUtils.setField(smsOtpService, "encryptionEnabled", encrypt);
 
-        SMSOTP result = smsOtpService.createOtpsSMS(new SMSOTPGeneration());
+        when(otpApi.sendSmsOtp(eq(new SMSOtp()), eq(encrypt))).thenReturn(getSmsOtp());
 
-        verify(otpApi, times(1)).createOtpsSMS(eq(new SMSOTPGeneration()));
+        Otp result = smsOtpService.createSMSOtp(new SMSOtp());
+
+        verify(otpApi, times(1)).sendSmsOtp(eq(new SMSOtp()), eq(encrypt));
         assertAll(
                 () -> assertNotNull(result),
                 () -> assertEquals("transactionId", result.getTransactionId())
         );
     }
 
-    @Test
-    public void testCreateOtpsSMSError() throws ApiException {
-        when(otpApi.createOtpsSMS(eq(new SMSOTPGeneration()))).thenThrow(new ApiException());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testCreateOtpSMSError(boolean encrypt) throws ApiException {
+        ReflectionTestUtils.setField(smsOtpService, "encryptionEnabled", encrypt);
+
+        when(otpApi.sendSmsOtp(eq(new SMSOtp()), eq(encrypt))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
-        SMSOTPGeneration smsOTPGeneration = new SMSOTPGeneration();
-        Assertions.assertThrows(ServiceException.class, () -> smsOtpService.createOtpsSMS(smsOTPGeneration));
+        SMSOtp smsOTP = new SMSOtp();
+        Assertions.assertThrows(ServiceException.class, () -> smsOtpService.createSMSOtp(smsOTP));
 
-        verify(otpApi, times(1)).createOtpsSMS(eq(new SMSOTPGeneration()));
+        verify(otpApi, times(1)).sendSmsOtp(eq(new SMSOtp()), eq(encrypt));
     }
 
-    @Test
-    public void testcreateVerifyOtps() throws ServiceException, ApiException {
-        when(otpApi.verifyOtps(eq(new SMSOTPVerification()))).thenReturn(getSMSOTPVerificationResult());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testCreateVerifyOtp(boolean encrypt) throws ServiceException, ApiException {
+        ReflectionTestUtils.setField(smsOtpService, "encryptionEnabled", encrypt);
 
-        SMSOTPVerificationResult result = smsOtpService.createVerifyOtps(new SMSOTPVerification());
+        when(otpApi.verifySmsOtp(eq(new OtpVerification()), eq(encrypt))).thenReturn(getSMSOTPVerificationResult());
 
-        verify(otpApi, times(1)).verifyOtps(eq(new SMSOTPVerification()));
+        OtpVerificationResult result = smsOtpService.createVerifyOtp(new OtpVerification());
+
+        verify(otpApi, times(1)).verifySmsOtp(eq(new OtpVerification()), eq(encrypt));
         assertAll(
                 () -> assertNotNull(result),
                 () -> assertEquals("transactionId", result.getTransactionId()));
     }
 
-    @Test
-    public void testcreateVerifyOtpsError() throws ServiceException, ApiException {
-        when(otpApi.verifyOtps(eq(new SMSOTPVerification()))).thenThrow(new ApiException());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testCreateVerifyOtpError(boolean encrypt) throws ServiceException, ApiException {
+        ReflectionTestUtils.setField(smsOtpService, "encryptionEnabled", encrypt);
+
+        when(otpApi.verifySmsOtp(eq(new OtpVerification()), eq(encrypt))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
-        SMSOTPVerification smsOTPVerification =  new SMSOTPVerification();
-        Assertions.assertThrows(ServiceException.class, () -> smsOtpService.createVerifyOtps(smsOTPVerification));
+        OtpVerification smsOTPVerification = new OtpVerification();
+        Assertions.assertThrows(ServiceException.class, () -> smsOtpService.createVerifyOtp(smsOTPVerification));
 
-        verify(otpApi, times(1)).verifyOtps(eq(new SMSOTPVerification()));
+        verify(otpApi, times(1)).verifySmsOtp(eq(new OtpVerification()), eq(encrypt));
     }
 
-    private SMSOTP getSMSOTP() {
-        SMSOTP smsOtp = new SMSOTP();
+    private Otp getSmsOtp() {
+        Otp smsOtp = new Otp();
         smsOtp.setTransactionId("transactionId");
         return smsOtp;
     }
 
-    private SMSOTPVerificationResult getSMSOTPVerificationResult() {
-        SMSOTPVerificationResult smsotpVerificationResult = new SMSOTPVerificationResult();
-        smsotpVerificationResult.setTransactionId("transactionId");
-        return smsotpVerificationResult;
+    private OtpVerificationResult getSMSOTPVerificationResult() {
+        OtpVerificationResult smsOtpVerificationResult = new OtpVerificationResult();
+        smsOtpVerificationResult.setTransactionId("transactionId");
+        return smsOtpVerificationResult;
     }
-
-
 }

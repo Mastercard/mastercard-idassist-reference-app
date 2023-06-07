@@ -1,33 +1,142 @@
 openapi: 3.0.3
 info:
-  title: Mastercard Id Verification API
-  description: ID Verification provides the technology platform and operational service to perform real-time user identity verification for various use cases including financial services, healthcare, travel and education. The solution is offered via APIs to prove the identity of users based on their verified phone number and social security number.
+  title: ID Verification API
+  description: ID Verification provides the technology platform and operational service to perform real-time user identity verification for various use cases including financial services, healthcare, travel and education.
   contact:
     name: API Support
     email: apisupport@mastercard.com
     url: https://developer.mastercard.com/support
-  version: '1.0'
+  version: '1.0.2'
 servers:
-  - url: 'https://api.mastercard.com/idverify'
+  - url: 'https://api.mastercard.com.au/idverify'
     description: Production server (uses live data)
-  - url: 'https://sandbox.api.mastercard.com/idverify'
+  - url: 'https://sandbox.api.mastercard.com.au/idverify'
     description: Sandbox server (testing environment)
 tags:
+  - name: Phone Number based Identity Verification
+    description: Verify a user's identity attributes against data from their phone records.
+  - name: Phone Number based Identity Prefill
+    description: Retrieve a user's identity attributes against data from their phone records.
+  - name: Phone Number Trust Scoring
+    description: Generate a score for the trustworthiness of a user's phone number based on data from their phone records.
   - name: SMS OTP
-    description: SMS One Time Password related operations
+    description: SMS One Time Password generation and validation related operations.
   - name: Email OTP
-    description: Email One Time Password related operations
-  - name: ID Document Data Extraction (OCR)
-    description: ID document data retrieval (OCR) related
-  - name: ID Document Verification
-    description: ID Document Verification related operations
+    description: Email One Time Password generation and validation related operations.
+  - name: Device Authentication
+    description: Authenticate a mobile device using the IP address and verifying by passing a fingerprint for the device.
+  - name: ID Document Data Extraction
+    description: ID document proofing, binding and data retrieval related operations.
+  - name: ID Document Data Source Verification
+    description: ID document data source verfication operations.
 paths:
+  /data-extractions/access-tokens:
+    post:
+      x-mastercard-api-encrypted: true
+      tags:
+        - ID Document Data Extraction
+      responses:
+        '200':
+          $ref: '#/components/responses/AccessTokenSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+      description: Return a provider token to be passed to the MIDS Liveness SDK module.
+      summary: The provider token is retrieved by country code and SDK version
+      operationId: retrieveDataExtractionAccessToken
+      requestBody:
+        $ref: '#/components/requestBodies/AccessTokenRequest'
+      parameters:
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
+  /sms-otps:
+    post:
+      x-mastercard-api-encrypted: true
+      summary: Creates and Send a One-Time Passcode (OTP) via SMS
+      tags:
+        - SMS OTP
+      responses:
+        '200':
+          $ref: '#/components/responses/SmsOtpGenerationSuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+      description: Create and Send a One-Time Passcode (OTP) via SMS to the address provided.
+      operationId: sendSmsOtp
+      requestBody:
+        $ref: '#/components/requestBodies/SmsOtpGenerationRequest'
+      parameters:
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
+  /email-otps:
+    post:
+      x-mastercard-api-encrypted: true
+      summary: Creates and Send a One-Time Passcode (OTP) via Email
+      tags:
+        - Email OTP
+      responses:
+        '200':
+          $ref: '#/components/responses/EmailOtpGenerationSuccessReponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+      description: Create and Send a One-Time Passcode (OTP) via Email to the address provided.
+      operationId: sendEmailOtp
+      requestBody:
+        $ref: '#/components/requestBodies/EmailOtpGenerationRequest'
+      parameters:
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
+  /sms-otp-verifications:
+    post:
+      x-mastercard-api-encrypted: true
+      summary: Verifies the provided code matches the SMS OTP
+      tags:
+        - SMS OTP
+      responses:
+        '200':
+          $ref: '#/components/responses/SmsOtpVerificationSuccessResponses'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+      description: Verify provided code matches the SMS OTP.
+      operationId: verifySmsOtp
+      requestBody:
+        $ref: '#/components/requestBodies/SmsOtpVerificationRequest'
+      parameters:
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
+  /email-otp-verifications:
+    post:
+      x-mastercard-api-encrypted: true
+      summary: Verifies the provided code matches the Email OTP
+      tags:
+        - Email OTP
+      responses:
+        '200':
+          $ref: '#/components/responses/EmailOtpVerificationResponses'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+      description: 'Verify that the provided code matches One-Time Passcode (OTP) sent via Email during `/email-otps`.'
+      operationId: verifyEmailOtp
+      requestBody:
+        $ref: '#/components/requestBodies/EmailOtpVerficationRequest'
+      parameters:
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
   /data-extractions/scans/{scan_id}:
     get:
       x-mastercard-api-encrypted: true
       summary: Returns the status of the document verification.
       tags:
-        - ID Document Data Extraction (OCR)
+        - ID Document Data Extraction
       responses:
         '200':
           $ref: '#/components/responses/DataExtractionSuccessResponse'
@@ -47,110 +156,13 @@ paths:
         - $ref: '#/components/parameters/RetrieveFacemapParameter'
         - $ref: '#/components/parameters/DocumentTypeParameter'
         - $ref: '#/components/parameters/CountryParameter'
-        - $ref: '#/components/parameters/XEncryptedPayload'
-  /sms-otps:
-    post:
-      summary: Creates and Send a One-Time Passcode (OTP) via SMS
-      tags:
-        - SMS OTP
-      responses:
-        '200':
-          $ref: '#/components/responses/SmsOtpGenerationSuccessResponse'
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-      description: Create and Send a One-Time Passcode (OTP) via SMS to the address provided.
-      operationId: sendSmsOtp
-      requestBody:
-        $ref: '#/components/requestBodies/SmsOtpGenerationRequest'
-      parameters:
-        - $ref: '#/components/parameters/XEncryptedPayload'
-  /email-otps:
-    post:
-      summary: Creates and Send a One-Time Passcode (OTP) via Email
-      tags:
-        - Email OTP
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailOtpGenerationSuccessReponse'
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-      description: Create and Send a One-Time Passcode (OTP) via Email to the address provided.
-      operationId: sendEmailOtp
-      requestBody:
-        $ref: '#/components/requestBodies/EmailOtpGenerationRequest'
-      parameters:
-        - $ref: '#/components/parameters/XEncryptedPayload'
-  /sms-otp-verifications:
-    post:
-      summary: Verifies the provided code matches the SMS OTP
-      tags:
-        - SMS OTP
-      responses:
-        '200':
-          $ref: '#/components/responses/SmsOtpVerificationSuccessResponses'
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-      description: Verify provided code matches the SMS OTP
-      operationId: verifySmsOtp
-      requestBody:
-        $ref: '#/components/requestBodies/SmsOtpVerificationRequest'
-      parameters:
-        - $ref: '#/components/parameters/XEncryptedPayload'
-  /email-otp-verifications:
-    post:
-      summary: Verifies the provided code matches the Email OTP
-      tags:
-        - Email OTP
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailOtpVerificationResponses'
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-      description: 'Verify that the provided code matches One-Time Passcode (OTP) sent via Email during `/email-otps`'
-      operationId: verifyEmailOtp
-      requestBody:
-        $ref: '#/components/requestBodies/EmailOtpVerficationRequest'
-      parameters:
-        - $ref: '#/components/parameters/XEncryptedPayload'
-  /data-extractions/access-tokens:
-    post:
-      x-mastercard-api-encrypted: true
-      tags:
-        - ID Document Data Extraction (OCR)
-      responses:
-        '200':
-          $ref: '#/components/responses/AccessTokenSuccessResponse'
-        '400':
-          $ref: '#/components/responses/BadRequestError'
-      description: Return a provider token to be passed to the MIDS Liveness SDK module
-      summary: The provider token is retrieved by country code and SDK version
-      operationId: retrieveDataExtractionAccessToken
-      requestBody:
-        $ref: '#/components/requestBodies/AccessTokenRequest'
-      parameters:
-        - $ref: '#/components/parameters/XEncryptedPayload'
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
   /source-verifications/{issuing_country}/medicare-cards:
     post:
       x-mastercard-api-encrypted: true
       summary: Verifies the details of a medicare card document with an identity verification provider
       tags:
-        - ID Document Verification
+        - ID Document Data Source Verification
       responses:
         '200':
           $ref: '#/components/responses/MedicareCardSourceVerificationResponse'
@@ -164,7 +176,7 @@ paths:
       operationId: verifyMedicareCard
       parameters:
         - $ref: '#/components/parameters/IssuingCountryParameter'
-        - $ref: '#/components/parameters/XEncryptedPayload'
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
       requestBody:
         $ref: '#/components/requestBodies/MedicareCardSourceVerificationRequest'
   /source-verifications/{issuing_country}/passports:
@@ -172,7 +184,7 @@ paths:
       x-mastercard-api-encrypted: true
       summary: Verifies the details of a passport document with an identity verification provider
       tags:
-        - ID Document Verification
+        - ID Document Data Source Verification
       responses:
         '200':
           $ref: '#/components/responses/PassportSourceVerificationResponse'
@@ -184,7 +196,7 @@ paths:
       operationId: verifyPassport
       parameters:
         - $ref: '#/components/parameters/IssuingCountryParameter'
-        - $ref: '#/components/parameters/XEncryptedPayload'
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
       requestBody:
         $ref: '#/components/requestBodies/PassportSourceVerificationRequest'
   /source-verifications/{issuing_country}/driving-licenses:
@@ -192,7 +204,7 @@ paths:
       x-mastercard-api-encrypted: true
       summary: Verifies the details of a driving license document with an identity verification provider
       tags:
-        - ID Document Verification
+        - ID Document Data Source Verification
       responses:
         '200':
           $ref: '#/components/responses/DriversLicenseSourceVerificationResponse'
@@ -204,13 +216,14 @@ paths:
       operationId: verifyDriversLicense
       parameters:
         - $ref: '#/components/parameters/IssuingCountryParameter'
-        - $ref: '#/components/parameters/XEncryptedPayload'
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
       requestBody:
         $ref: '#/components/requestBodies/DriversLicenseSourceVerificationRequest'
   /user-verifications:
     post:
+      x-mastercard-api-encrypted: true
       tags:
-        - ID Verify User
+        - Phone Number based Identity Verification
       responses:
         '200':
           $ref: '#/components/responses/IdentityVerificationResponse'
@@ -222,18 +235,19 @@ paths:
           $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/NotFoundError'
-      description: Verifies user entered Personally Identifiable Information (PII) by returning a true/false or matching score per attribute along with an overall trust score for the record
-      operationId: identityVerification
+      description: Verifies user entered Personally Identifiable Information (PII) by returning a true/false or matching score per attribute along with an overall trust score for the record.
+      operationId: Identity Verification API
       summary: Verify an Identity
       requestBody:
         $ref: '#/components/requestBodies/IdentityVerificationRequest'
       parameters:
-        - $ref: '#/components/parameters/XEncryptedPayload'
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
   /user-identities:
     post:
+      x-mastercard-api-encrypted: true
       summary: Fetch User Identity
       tags:
-        - ID Verify User
+        - Phone Number based Identity Prefill
       responses:
         '200':
           $ref: '#/components/responses/IdentityResponse'
@@ -247,19 +261,20 @@ paths:
           $ref: '#/components/responses/NotFoundError'
       description: |-
         This API will provide information about an individual user with one of the following:
-        - Phone Number and Last 4 Digits of SSN
-        - Phone Number and National ID
-        - Phone Number and Date of Birth
+        - Phone Number and Last 4 Digits of SSN.
+        - Phone Number and National ID.
+        - Phone Number and Date of Birth.
       operationId: userIdentity
       requestBody:
         $ref: '#/components/requestBodies/IdentityRequest'
       parameters:
-        - $ref: '#/components/parameters/XEncryptedPayload'
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
   /trust-scores:
     post:
+      x-mastercard-api-encrypted: true
       summary: Fetch Trust Score
       tags:
-        - ID Verify User
+        - Phone Number Trust Scoring
       responses:
         '200':
           $ref: '#/components/responses/TrustScoreUserInfoResponse'
@@ -271,17 +286,18 @@ paths:
           $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/NotFoundError'
-      description: This API will provide trust information about an individual user
+      description: This API will provide trust information about an individual user.
       operationId: userTrustScore
       requestBody:
         $ref: '#/components/requestBodies/TrustScoreRequest'
       parameters:
-        - $ref: '#/components/parameters/XEncryptedPayload'
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
   /device-authentications:
     post:
+      x-mastercard-api-encrypted: true
       summary: Provide Redirect URL for Device Authentication Verification
       tags:
-        - ID Verify Device Authentication
+        - Device Authentication
       responses:
         '200':
           $ref: '#/components/responses/DeviceAuthenticationVerificationUrlResponse'
@@ -293,17 +309,18 @@ paths:
           $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/NotFoundError'
-      description: This API provides a ``redirectTargetUrl`` for a given device IP Address. The ``redirectTargetUrl`` can be used to retrieve a ``verificationFingerprint`` which is used for verification in ``/device-authentication-verifications``
+      description: This API provides a ``redirectTargetUrl`` for a given device IP Address. The ``redirectTargetUrl`` can be used to retrieve a ``verificationFingerprint`` which is used for verification in ``/device-authentication-verifications``.
       operationId: deviceAuthentication
       requestBody:
         $ref: '#/components/requestBodies/DeviceIpAddressRequest'
       parameters:
-        - $ref: '#/components/parameters/XEncryptedPayload'
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
   /device-authentication-verifications:
     post:
+      x-mastercard-api-encrypted: true
       summary: Provide Phone Number using verificationFingerprint
       tags:
-        - ID Verify Device Authentication
+        - Device Authentication
       responses:
         '200':
           $ref: '#/components/responses/DevicePhoneNumberResponse'
@@ -315,16 +332,16 @@ paths:
           $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/NotFoundError'
-      description: This API provides a ``redirectTargetUrl`` for a given device IP Address. The ``redirectTargetUrl`` can be used to retrieve a ``verificationFingerprint`` which is used for verification in ``/device-authentication-verifications``
+      description: This API provides a ``redirectTargetUrl`` for a given device IP Address. The ``redirectTargetUrl`` can be used to retrieve a ``verificationFingerprint`` which is used for verification in ``/device-authentication-verifications``.
       operationId: deviceAuthenticationVerification
       requestBody:
         $ref: '#/components/requestBodies/DeviceVerificationFingerprintRequest'
       parameters:
-        - $ref: '#/components/parameters/XEncryptedPayload'
+        - $ref: '#/components/parameters/EncryptedPayloadParameter'
 components:
   schemas:
     DocumentVerificationExtractedDataDocumentData:
-      description: Document Data
+      description: Document Data.
       required:
         - dateOfBirth
         - documentNumber
@@ -339,129 +356,130 @@ components:
       type: object
       properties:
         documentNumber:
-          description: Document Number
-          example: 1LViI488YkFZh8YjNlLf61BMn29cmQn
+          description: Document Number.
+          example: N1234567
           type: string
           minLength: 1
           maxLength: 255
         documentStatus:
-          description: Document Status. SUCCESS OR PENDING
+          description: Document Status. SUCCESS OR PENDING.
           example: SUCCESS
           type: string
           minLength: 1
           maxLength: 7
         documentType:
-          description: Document Type. PASSPORT OR DRIVER_LICENSE
+          description: Document Type. PASSPORT OR DRIVER_LICENSE OR ID_CARD.
           example: PASSPORT
           type: string
           minLength: 1
           maxLength: 50
+          pattern: ^(DRIVING_LICENSE|PASSPORT|ID_CARD)$
         dateOfBirth:
-          description: YYYY-MM-DD format
+          description: YYYY-MM-DD format.
           example: '2020-09-09'
           type: string
           minLength: 10
           maxLength: 10
         firstName:
-          description: Users First Name
+          description: Users First Name.
           example: John
           type: string
           minLength: 1
           maxLength: 255
         lastName:
-          description: Users Last Name
+          description: Users Last Name.
           example: Smith
           type: string
           minLength: 1
           maxLength: 255
         expiryDate:
-          description: Document expiration date in YYYY-MM-DD format
+          description: Document expiration date in YYYY-MM-DD format.
           example: '2020-10-10'
           type: string
           format: date
           minLength: 10
           maxLength: 10
         gender:
-          description: M/F
+          description: M/F.
           example: M
           type: string
           minLength: 1
           maxLength: 1
         issuingCountry:
-          description: Document issuing country
-          example: USA
+          description: Document issuing country.
+          example: AUS
           type: string
           minLength: 3
           maxLength: 3
         issuingDate:
-          description: Document issuing date
+          description: Document issuing date.
           example: '2020-09-09'
           type: string
           format: date
           minLength: 10
           maxLength: 10
         issuingPlace:
-          description: Document issuing place
+          description: Document issuing place.
           example: New York
           type: string
           minLength: 1
           maxLength: 50
         issuingAuthority:
-          description: Document issuing authority
+          description: Document issuing authority.
           example: United States
           type: string
           minLength: 1
           maxLength: 50
         placeOfBirth:
-          description: Users place of birth
+          description: Users place of birth.
           example: Boston
           type: string
           minLength: 1
           maxLength: 255
         addressLine1:
-          description: Users Address Line 1
+          description: Users Address Line 1.
           example: 123 Main St.
           type: string
           minLength: 1
           maxLength: 255
         addressLine2:
-          description: Users Address Line 2
+          description: Users Address Line 2.
           example: New York
           type: string
           minLength: 1
           maxLength: 255
         addressZipCode:
-          description: Users zip code
+          description: Users zip code.
           example: '10021'
           type: string
           minLength: 1
           maxLength: 50
         addressCity:
-          description: Users City
+          description: Users City.
           example: New York
           type: string
           minLength: 1
           maxLength: 100
         addressCountry:
-          description: Users Country
+          description: Users Country.
           example: USA
           type: string
           minLength: 2
           maxLength: 3
         addressSubdivision:
-          description: Users Subdivision
+          description: Users Subdivision.
           example: MO
           type: string
           minLength: 2
           maxLength: 100
         issuingState:
-          description: Users State
+          description: Users State.
           example: MO
           type: string
           minLength: 2
           maxLength: 100
         formattedAddress:
-          description: Users formatted Address
+          description: Users formatted Address.
           example: 220 BLVD O FALLON MO
           type: string
           minLength: 1
@@ -486,34 +504,30 @@ components:
           example: /mJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanq.........................
           type: string
           minLength: 1
-        cpf:
-          description: CPF
-          example: 123.456.789-00
-          type: string
-          minLength: 1
-          pattern: '^[0-9]{3}\.?[0-9]{3}\.?[0-9]{3}\-?[0-9]{2}$'
         rgNumber:
-          description: RG Number
-          example: 98.765.432-1
           type: string
           minLength: 1
           maxLength: 255
+          description: RG Number.
+          example: 12345
+        cpf:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: CPF Number.
+          example: 12345
         fathersName:
-          description: Fathers name
-          example: John Doe
           type: string
           minLength: 1
           maxLength: 255
+          description: Father's Name.
+          example: John Smith
         mothersName:
-          description: Mothers name
-          example: Jane Doe
           type: string
           minLength: 1
           maxLength: 255
-        cardNumber:
-          description: For Australian Driving License DVS Card Number
-          type: string
-          example: "TA8675309"
+          description: Mother's Name.
+          example: Paula Smith
     DocumentVerificationExtractedData:
       required:
         - status
@@ -523,13 +537,13 @@ components:
         documentData:
           $ref: '#/components/schemas/DocumentVerificationExtractedDataDocumentData'
         status:
-          description: The status of the Status API, possible values are SUCCESS / PENDING
+          description: The status of the Status API, possible values are SUCCESS / PENDING.
           example: SUCCESS
           type: string
           minLength: 1
           maxLength: 7
         transactionId:
-          description: A random 128-bit UUID representing the transaction
+          description: The transaction ID provided in the API response must be logged by the Relying Party. The Relying Party is required to provide the transaction ID when contacting the Mastercard customer support team.
           example: 1ec14310-e85c-11ea-adc1-0242ac120002
           type: string
           minLength: 36
@@ -542,25 +556,25 @@ components:
       type: object
       properties:
         transactionId:
-          description: A random 128-bit UUID representing the transaction
+          description: The transaction ID provided in the API response must be logged by the Relying Party. The Relying Party is required to provide the transaction ID when contacting the Mastercard customer support team.
           type: string
           example: 1ec14310-e85c-11ea-adc1-0242ac120002
           minLength: 36
           maxLength: 36
         sdkToken:
-          description: Token to initialize the SDK
+          description: Token to initialize the SDK.
           type: string
           example: eyJhbGciOiJIUzUxMiIsInppcCI6IkdaSVAifQ.H4sIAAAAAAAAAB3NQQpCMQwE0Lt0baBJ0yZ159KtN0jTBgTBjYgg3t3__3KGN8w3rc_llc4JG6KUhrmoYjolc7_OvWfPKJ2hUzNgagE2hcC5hsYIUeOdH7gStVr6AtElwNUcrBNDFppYMjqxb9hvKzb9fNzfa4_HVkORomdoggsYp8HgPqAWF43VtsOcfn_stx4UsAAAAA.tDRVowYYcpQ03Vlt7D3MiovleiyRFQMv4qzXb7Lf_6CarphRrlWXan8-jE-YesNiAiT8tk0b-i8TKHGrcgT1VQ
           minLength: 1
           maxLength: 255
         apiDataCenter:
-          description: API Data Center
+          description: API Data Center.
           type: string
           example: US, EU or SG
           minLength: 1
           maxLength: 2
         documentVerificationUrl:
-          description: Web url to display in iframe
+          description: Web url to display in iframe.
           type: string
           example: https://mastercard.web.apac-1.jumio.link/web/v4/app?authorizationToken=eyJhbGciOiJIUzUxMiIsInppcCI6IkdaSVAifQ.H4sIAAAAAAAAAJXOQQ5CIQxF0b0wtkmBFqgzh07_Dkp_iWM10cS4d0FX4PTm5OW9gj9P93AMsaRaS845CVM4BDU776sLi5JGiM06UGGDLiUCRaLa0rDR6uJf7FH6mBwYtUyCBcSywBznbmMfGdPEj-H_cNt8TL35zfVql1V-12o0SZ3AGysQ1wKNFCGbsjlyUsTw_gANOZ5b4gAAAA.2bo6KfOvGIswNRNTXv6QtoGvHyNYp_j3LwHia9DtuWna3y_LLI1VgPZle46Q5cFHuuMJB7g7y4wHbtogBX2HfQ&locale=en-US
     RetrieveAccessToken:
@@ -573,38 +587,42 @@ components:
           type: string
           example: US
           pattern: '^[a-zA-Z]{2}$'
-          description: ISO-3166 Alpha-2 standard.
+          description: The ISO 3166-1 alpha2 code which corresponds to the country from where the request to ID is originating from.
+        channelType:
+          type: string
+          example: WEB
+          description: The platform where the request is generated from.
+          enum:
+            - WEB
+            - SDK
+          minLength: 3
+          maxLength: 3
         sdkVersion:
           type: string
           example: 1.0.0
           pattern: '^[0-9]{1,5}\.[0-9]{1,5}\.[0-9]{1,5}$'
-          description: sdk version
+          description: The SDK's version that the application is using. Required if the channelType is `SDK`.
         livenessType:
           type: string
           example: GPA
-          description: liveness type, GPA takes longer and provides more accuracy, LA is faster
+          description: The preferred liveness type to be applied; Liveness Assurance (LA) or Genuine Presence Assurance (GPA), where GPA provides LA capability and also additional checks that ensure the user is genuinely present.
           enum:
             - GPA
             - LA
-        channelType:
-          type: string
-          example: WEB
-          description: the platform of enrollment process
-          enum:
-            - WEB
-            - SDK
+          minLength: 2
+          maxLength: 3
         successUrl:
           type: string
           example: https://www.rp.com/success
-          description: This is mandatory in case of WEB only, Not Mandatory for SDK. Do not send these fields in case of SDK channelType
+          description: The URL to be redirected to if the token request is successful. Must be present if the channelType is WEB.
           pattern: '^((https):\/\/)([-\w.])+(:[0-9]+)?\/?(\/[-.\w]*)*((\?|\&)([^=]+)\=([^&]*))*$'
         errorUrl:
           type: string
           example: https://www.rp.com/error
-          description: This is mandatory in case of WEB only, Not Mandatory for SDK. Do not send these fields in case of SDK channelType
+          description: The URL to be redirected to if the token request is not successful. Must be present if the channelType is WEB.
           pattern: '^((https):\/\/)([-\w.])+(:[0-9]+)?\/?(\/[-.\w]*)*((\?|\&)([^=]+)\=([^&]*))*$'
         locale:
-          description: 'IETF BCP 47 Format E.g. "en-GB" (English - United Kingdom), "es-MX" (Spanish - Mexico). More information: Locale ID (LCID) as defined by Microsoft. Not required. The default value is "en-US".'
+          description: 'The IETF BCP 47 value which determines the language variant to be applied in the subsequent scanning dialogs accessed via the token.'
           type: string
           default: en-US
           example: en-GB
@@ -617,28 +635,28 @@ components:
       type: object
       properties:
         responseCode:
-          description: '`SUCCESS`, `FAILURE` or `ATTEMPTS_EXCEEDED`'
+          description: '`SUCCESS`, `FAILURE` or `ATTEMPTS_EXCEEDED`.'
           type: string
           example: SUCCESS
           minLength: 1
           maxLength: 17
         responseMessage:
-          description: A short message describing the response code
+          description: A short message describing the response code.
           type: string
           example: OTP verified
           minLength: 1
           maxLength: 255
-        attemptsRemaining:
-          description: The number of attempts remaining. This field is only populated for the `FAILURE` response code
-          type: integer
-          format: int32
-          example: 2
         transactionId:
-          description: A random 128-bit UUID representing the transaction.
+          description: The transaction ID provided in the API response must be logged by the Relying Party. The Relying Party is required to provide the transaction ID when contacting the Mastercard customer support team.
           type: string
           example: 28eae1aa-6744-433e-879d-7da48d63e89a
           minLength: 36
           maxLength: 36
+        attemptsRemaining:
+          description: The number of attempts remaining. This field is only populated for the `FAILURE` response code.
+          type: integer
+          format: int32
+          example: 2
     Otp:
       required:
         - otpId
@@ -652,7 +670,7 @@ components:
           minLength: 36
           maxLength: 36
         transactionId:
-          description: A random 128-bit UUID for the transaction.
+          description: The transaction ID provided in the API response must be logged by the Relying Party. The Relying Party is required to provide the transaction ID when contacting the Mastercard customer support team.
           type: string
           example: 689def8e-d17b-89ea-87d0-0242ac12343
           minLength: 36
@@ -681,12 +699,12 @@ components:
         countryCode:
           minLength: 2
           maxLength: 2
-          description: "Size must be exactly 2 letters. This attribute is passed for all of the exposed APIs.\r\n"
+          description: 'The ISO 3166-1 alpha2 code which corresponds to the country from where the request to ID is originating from.'
           type: string
           pattern: '^[a-zA-Z]{2}$'
           example: BR
         userConsent:
-          description: Consent from User
+          description: The value which best reflects the input of the User with regard to consent to use their data.
           enum:
             - ACCEPT
             - DECLINE
@@ -694,16 +712,19 @@ components:
             - EXPIRE
           type: string
           example: ACCEPT
-        optedInConsentStatus:
-          description: Should be true to proceed with the request. This attribute is passed for all of the exposed APIs.
-          type: boolean
-          example: true
     EmailOtp:
       required:
         - countryCode
         - emailAddress
       type: object
       properties:
+        countryCode:
+          description: The ISO 3166-1 alpha2 code which corresponds to the country from where the request to ID is originating from.
+          type: string
+          example: BR
+          pattern: '^[a-zA-Z]{2}$'
+          minLength: 2
+          maxLength: 2
         emailAddress:
           description: The email address in which to send the OTP to.
           type: string
@@ -711,20 +732,13 @@ components:
           example: john.dunne@domain.com
           minLength: 1
         locale:
-          description: 'IETF BCP 47 Format E.g. "en-GB" (English - United Kingdom), "es-MX" (Spanish - Mexico). More information: Locale ID (LCID) as defined by Microsoft. Not required. The default value is "en-US".'
+          description: 'The IETF BCP 47 value which determines the language variant to be applied in the OTP messages.'
           type: string
           default: en-US
           example: en-GB
           pattern: '^[a-z]{2}-[a-zA-Z]{2}$'
-        countryCode:
-          description: Size must be exactly 2 letters. This attribute is passed for all of the exposed APIs.
-          type: string
-          example: BR
-          pattern: '^[a-zA-Z]{2}$'
-          minLength: 2
-          maxLength: 2
         userConsent:
-          description: Consent from User
+          description: The value which best reflects the input of the User with regard to consent to use their data.
           enum:
             - ACCEPT
             - DECLINE
@@ -732,16 +746,18 @@ components:
             - EXPIRE
           type: string
           example: ACCEPT
-        optedInConsentStatus:
-          description: Should be true to proceed with the request. This attribute is passed for all of the exposed APIs.
-          type: boolean
-          example: true
     SMSOtp:
       required:
         - countryCode
         - phoneNumber
       type: object
       properties:
+        countryCode:
+          maxLength: 2
+          description: The ISO 3166-1 alpha2 code which corresponds to the country from where the request to ID is originating from.
+          type: string
+          example: BR
+          pattern: '^[a-zA-Z]{2}$'
         phoneNumber:
           maxLength: 15
           description: 'The phone number in which to send the OTP to. It should be prefixed with the international dialing code, without the ''+''.'
@@ -749,19 +765,13 @@ components:
           pattern: '^[1-9]\d{2,14}$'
           example: '553453554563'
         locale:
-          description: 'IETF BCP 47 Format E.g. "en-GB" (English - United Kingdom), "es-MX" (Spanish - Mexico). More information: Locale ID (LCID) as defined by Microsoft. Not required. The default value is "en-US".'
+          description: 'The IETF BCP 47 value which determines the language variant to be applied in the OTP messages.'
           type: string
           example: en-GB
           default: en-US
           pattern: '^[a-z]{2}-[a-zA-Z]{2}$'
-        countryCode:
-          maxLength: 2
-          description: Size must be exactly 2 letters. This attribute is passed for all of the exposed APIs.
-          type: string
-          example: BR
-          pattern: '^[a-zA-Z]{2}$'
         userConsent:
-          description: Consent from User
+          description: 'The value which best reflects the input of the User with regard to consent to use their data.'
           enum:
             - ACCEPT
             - DECLINE
@@ -769,10 +779,6 @@ components:
             - EXPIRE
           type: string
           example: ACCEPT
-        optedInConsentStatus:
-          description: Should be true to proceed with the request. This attribute is passed for all of the exposed APIs.
-          type: boolean
-          example: true
     MedicareCardSourceVerificationRequestAttributes:
       required:
         - userConsent
@@ -784,7 +790,7 @@ components:
         - expiryDate
       properties:
         userConsent:
-          description: Consent from User
+          description: 'The value which best reflects the input of the User with regard to consent to use their data.'
           enum:
             - ACCEPT
             - DECLINE
@@ -792,73 +798,77 @@ components:
             - EXPIRE
           type: string
           example: ACCEPT
+          minLength: 6
+          maxLength: 7
         cardColor:
-          description: Medicard Color can be GREEN, BLUE OR YELLOW
+          description: Medicard Color can be GREEN, BLUE OR YELLOW.
           enum:
             - GREEN
             - BLUE
             - YELLOW
           type: string
           example: BLUE
+          minLength: 4
+          maxLength: 6
         nameLine1:
-          description: Name Line 1
+          description: Name Line 1.
           example: Smith
           type: string
           minLength: 1
           maxLength: 27
           pattern: '^[a-zA-Z\s ,.''‘’-]{1,27}$'
+        medicareCardNo:
+          description: Unique number for Medicare card.
+          type: string
+          maxLength: 10
+          example: '1234567890'
+          pattern: '^[0-9]{10}$'
+        individualReferenceNo:
+          description: Individual Reference Number.
+          type: string
+          maxLength: 1
+          example: '1'
+          pattern: '^[0-9]{1}$'
+        countryCode:
+          description: Country code (case insensitive) as described in the ISO 3166-1 alpha-3 international standard.
+          type: string
+          example: 'AUS'
+          pattern: '^[a-zA-Z]{3}'
+        expiryDate:
+          example: '2000-12-31'
+          description: 'The expiry date as it appears on the card, following the color and format. Green card YYYY-MM, Yellow or Blue card YYYY-MM-DD.'
+          type: string
+          minLength: 07
+          maxLength: 10
         nameLine2:
-          description: Name Line 2
+          description: Name Line 2.
           example: Steve
           type: string
           minLength: 1
           maxLength: 25
           pattern: '^[a-zA-Z\s ,.''‘’-]{1,25}$'
         nameLine3:
-          description: Name Line 3
+          description: Name Line 3.
           example: Baven
           type: string
           minLength: 1
           maxLength: 23
           pattern: '^[a-zA-Z\s ,.''‘’-]{1,23}$'
         nameLine4:
-          description: Name Line 4
+          description: Name Line 4.
           example: Mike
           type: string
           minLength: 1
           maxLength: 21
           pattern: '^[a-zA-Z\s ,.''‘’-]{1,21}$'
-        medicareCardNo:
-          description: Unique number for Medicare card
-          type: string
-          maxLength: 10
-          example: '1234567890'
-          pattern: '^[0-9]{10}$'
-        individualReferenceNo:
-          description: Individual Reference Number
-          type: string
-          maxLength: 1
-          example: '1'
-          pattern: '^[0-9]{1}$'
-        countryCode:
-          description: Country code (case insensitive) as described in the ISO 3166 alpha-2 international standard
-          type: string
-          example: 'AUS'
-          pattern: '^[a-zA-Z]{3}'
         birthDate:
           example: '2010-10-25'
-          description: YYYY-MM-DD format
+          description: YYYY-MM-DD format.
           type: string
           format: date
           minLength: 10
           maxLength: 10
           pattern: '^[0-9]{4}-[0-1][0-9]-[0-3][0-9]'
-        expiryDate:
-          example: '2000-01 OR 2000-12-31'
-          description: The expiry date as it appears on the card, usually in DD/MM/YYYY for Green Medicare Cards and MM/YYYY for Blue and Yellow Medicare Cards. API accepts YYYY-MM format for Green Medicare Cards and YYYY-MM-DD for Blue and Yellow Medicare Cards.
-          type: string
-          minLength: 07
-          maxLength: 10
     MedicareCardSourceVerificationResult:
       required:
         - verificationResult
@@ -867,7 +877,9 @@ components:
         verificationResult:
           type: string
           example: DOCUMENT_VERIFIED
-          description: "Verification Results, following: DOCUMENT_VERIFIED - Document matches with the IVP registered document, DOCUMENT_NOT_VERIFIED - Document does not match with any of the IVP registered document, DOCUMENT_INVALID - Document is invalid or not electronically captured"
+          description: "Verification Results, following : DOCUMENT_VERIFIED - Document matches with the IVP registered document, DOCUMENT_NOT_VERIFIED - Document does not match with any of the IVP registered document, DOCUMENT_INVALID - Document is invalid or not electronically captured."
+          minLength: 16
+          maxLength: 21
     PassportSourceVerificationRequestAttributes:
       required:
         - documentNumber
@@ -878,12 +890,12 @@ components:
       type: object
       properties:
         documentNumber:
-          description: Document Number
+          description: Document Number.
           type: string
-          example: 1LViI488YkFZh8YjNlLf61BMn29cmQn
+          example: N1234567
           pattern: '^[0-9a-zA-Z\-]{1,50}$'
         userConsent:
-          description: Consent from User
+          description: 'The value which best reflects the input of the User with regard to consent to use their data.'
           enum:
             - ACCEPT
             - DECLINE
@@ -891,33 +903,35 @@ components:
             - EXPIRE
           type: string
           example: ACCEPT
+          minLength: 6
+          maxLength: 7
         dateOfBirth:
-          description: YYYY-MM-DD format
+          description: YYYY-MM-DD format.
           type: string
           format: date
           example: '1990-01-01'
           pattern: '^[0-9]{4}-[0-1][0-9]-[0-3][0-9]$'
         firstName:
-          description: Users First Name
+          description: Users First Name.
           type: string
           example: John
           pattern: '^[a-zA-Z\s ,.''‘’-]{1,255}$'
         lastName:
-          description: Users Last Name
+          description: Users Last Name.
           type: string
           example: Smith
           pattern: '^[a-zA-Z\s ,.''‘’-]{1,255}$'
         gender:
-          description: Users Gender
+          description: Users Gender.
           type: string
           example: M
           pattern: '^[M|F|X]$'
         visaMatched:
           type: boolean
-          description: Whether visa verification is required
-          example: false
+          description: Whether visa verification is required.
+          example: true
         visaIssuingCountry:
-          description: Visa issuing country
+          description: Visa issuing country.
           type: string
           example: AUS
           pattern: '^[A-Z]{3}$'
@@ -929,15 +943,16 @@ components:
         - lastName
         - dateOfBirth
         - stateCode
+        - cardNumber
       type: object
       properties:
         documentNumber:
-          description: Document Number
+          description: Document Number.
           type: string
-          example: 1LViI488YkFZh8YjNlLf61BMn29cmQn
+          example: AB001234567
           pattern: '^[0-9a-zA-Z\-]{1,50}$'
         userConsent:
-          description: Consent from User
+          description: 'The value which best reflects the input of the User with regard to consent to use their data.'
           enum:
             - ACCEPT
             - DECLINE
@@ -945,31 +960,131 @@ components:
             - EXPIRE
           type: string
           example: ACCEPT
+          minLength: 6
+          maxLength: 7
         dateOfBirth:
-          description: YYYY-MM-DD format
+          description: YYYY-MM-DD format.
           type: string
           format: date
           example: '1990-01-01'
           pattern: '^[0-9]{4}-[0-1][0-9]-[0-3][0-9]$'
         firstName:
-          description: Users First Name
+          description: Users First Name.
           type: string
           example: John
           pattern: '^[a-zA-Z\s ,.''‘’-]{1,255}$'
         lastName:
-          description: Users Last Name
+          description: Users Last Name.
           type: string
           example: Smith
           pattern: '^[a-zA-Z\s ,.''‘’-]{1,255}$'
         stateCode:
-          description: State code
+          description: State code.
           type: string
           example: NSW
           pattern: '^[a-zA-Z]{2,3}$'
         cardNumber:
-          description: For Australian Driving License DVS Card Number
+          description: Users DVS Card Number.
           type: string
-          example: "TA8675309"
+          example: AB45864
+    OpenBankingRegistrationRequestAttributes:
+      required:
+        - firstName
+        - lastName
+        - address
+        - city
+        - state
+        - zip
+        - phone
+        - ssn
+        - birthday
+        - applicationId
+        - redirectUri
+      type: object
+      properties:
+        firstName:
+          description: User's first name.
+          type: string
+          example: John
+          pattern: '^[a-zA-Z\s ,.''‘’-]{1,255}$'
+        lastName:
+          description: User's last name.
+          type: string
+          example: Smith
+          pattern: '^[a-zA-Z\s ,.''‘’-]{1,255}$'
+        address:
+          description: The User's street address.
+          type: string
+          example: '434 W Ascension Way'
+        city:
+          description: The User's city.
+          type: string
+          example: 'Murray'
+        state:
+          description: The User's state.
+          type: string
+          example: UT
+          pattern: '^[a-zA-Z]{2,3}$'
+        zip:
+          description: The User's ZIP code.
+          type: string
+          example: '84123'
+        phone:
+          description: The User's phone  number.
+          type: string
+          pattern: '^[1-9]\d{2,14}$'
+          example: '6786786786'
+        ssn:
+          description: 'The consumer’s 9-digit Social Security number (may include separators: nnn-nn-nnnn).'
+          type: string
+          example: '111222333'
+          pattern: '^(\d{3})-(\d{2})-(\d{4})|(\d{9})$'
+        birthday:
+          description: The User's birth date.
+          type: object
+          required:
+            - year
+            - month
+            - dayOfMonth
+          properties:
+            year:
+              description: 'The birthday 4-digit year.'
+              type: integer
+              example: '1989'
+              pattern: '^(\d{4})$'
+            month:
+              description: 'The birthday 2-digit month (01 is January).'
+              type: integer
+              example: '8'
+              pattern: '^(\d{1,2})$'
+            dayOfMonth:
+              description: 'The birthday 2-digit day-of-month.'
+              type: integer
+              example: '12'
+              pattern: '^(\d{1,2})$'
+        applicationId:
+          description: The application Id for the app the partner would like to assign the customer to. This cannot be changed once set.
+          type: string
+          example: '12345'
+        redirectUri:
+          description: The url that customers will be redirected to after completing Connect.
+          type: string
+          example: 'https://mastercard.com/redirect'
+        username:
+          description: MIDS Open banking platform username (will be automatically generated UUID if left blank).
+          type: string
+          example: tlasijd09283480
+          minLength: 6
+          maxLength: 255
+        email:
+          description: The User's email address.
+          type: string
+          example: 'test@mastercard.com'
+          pattern: "^[\\w-\\.\\'\\‘\\’]+@([\\w-]+\\.)+[\\w-]{2,4}$"
+        suffix:
+          description: The User's suffix.
+          type: string
+          example: "Mr"
     SourceVerificationResult:
       required:
         - verificationResult
@@ -977,15 +1092,17 @@ components:
       properties:
         verificationResult:
           type: string
-          description: "Verification Results, following: DOCUMENT_VERIFIED - Document matches with the IVP registered document, DOCUMENT_NOT_VERIFIED - Document does not match with any of the IVP registered document, DOCUMENT_INVALID - Document is invalid or not electronically captured"
+          description: "Verification Results, following : DOCUMENT_VERIFIED - Document matches with the IVP registered document, DOCUMENT_NOT_VERIFIED - Document does not match with any of the IVP registered document, DOCUMENT_INVALID - Document is invalid or not electronically captured."
           example: DOCUMENT_VERIFIED
+          minLength: 16
+          maxLength: 21
     IdentityVerification:
       type: object
       properties:
         transactionId:
           type: string
           example: 7f83-b0c4-90e0-90b3-11e10800200c9a66
-          description: A random 128-bit. UUID representing the MIDS transaction
+          description: The transaction ID provided in the API response must be logged by the Relying Party. The Relying Party is required to provide the transaction ID when contacting the Mastercard customer support team.
           pattern: '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$'
         name:
           type: object
@@ -994,21 +1111,21 @@ components:
               type: integer
               format: int32
               example: 100
-              description: The user's first name
+              description: The user's first name.
               minLength: 1
               maxLength: 3
             lastName:
               type: integer
               format: int32
               example: 100
-              description: The user's last name
+              description: The user's last name.
               minLength: 1
               maxLength: 3
             nameScore:
               type: integer
               format: int32
               example: 100
-              description: The user's name score
+              description: The user's name score.
               minLength: 1
               maxLength: 3
         address:
@@ -1018,62 +1135,62 @@ components:
               type: integer
               format: int32
               example: 100
-              description: The user's street number
+              description: The user's street number.
               minLength: 1
               maxLength: 3
             street:
               type: boolean
               example: true
-              description: Response from identity verification provider
+              description: Response from identity verification provider.
             city:
               type: boolean
               example: true
-              description: Response from identity verification provider
+              description: Response from identity verification provider.
             region:
               type: boolean
               example: true
-              description: Response from identity verification provider
+              description: Response from identity verification provider.
             postalCode:
               type: boolean
               example: true
-              description: Response from identity verification provider
+              description: Response from identity verification provider.
             addressScore:
               type: integer
               format: int32
               example: 100
-              description: The user's address score
-          description: The user's address
+              description: The user's address score.
+          description: The user's address.
         identifiers:
           type: object
           properties:
             last4ssn:
               type: boolean
               example: true
-              description: Response from identity verification provider
+              description: Response from identity verification provider.
             nationalId:
               type: boolean
               example: true
-              description: Response from identity verification provider
+              description: Response from identity verification provider.
             dob:
               type: boolean
               example: true
-              description: Response from identity verification provider
+              description: Response from identity verification provider.
         email:
           type: object
           properties:
             emailAddress:
               type: boolean
               example: true
-              description: Response from identity verification provider
+              description: Response from identity verification provider.
         trustScore:
           type: integer
           format: int32
           example: 1000
-          description: The user's trust score
+          description: The user's trust score.
         phoneNumber:
           type: string
           example: 13143039289
-          description: The user's phone number
+          description: The user's phone number.
           pattern: '^[1-9]\d{1,14}$'
         reasonCodes:
           minItems: 0
@@ -1139,11 +1256,11 @@ components:
         verified:
           type: boolean
           example: true
-          description: Whether a user identity is verified
+          description: Whether a user identity is verified.
         lineType:
           type: string
           example: Mobile
-          description: The line type. It can be either ``Mobile``, ``Landline``, ``FixedVoIP`` or ``NonFixedVoIP``
+          description: The line type. It can be either ``Mobile``, ``Landline``, ``FixedVoIP`` or ``NonFixedVoIP``.
           minLength: 5
           maxLength: 12
     Identity:
@@ -1151,12 +1268,12 @@ components:
         - scopedFields
         - transactionId
       type: object
-      description: The fields to be scoped
+      description: The fields to be scoped.
       properties:
         transactionId:
           type: string
           example: 7f83-b0c4-90e0-90b3-11e10800200c9a66
-          description: A random 128-bit. UUID representing the MIDS transaction
+          description: The transaction ID provided in the API response must be logged by the Relying Party. The Relying Party is required to provide the transaction ID when contacting the Mastercard customer support team.
           pattern: '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$'
         scopedFields:
           type: object
@@ -1164,65 +1281,58 @@ components:
             firstName:
               type: string
               example: John
-              description: The user's first name
+              description: The user's first name.
               pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
             lastName:
               type: string
               example: Doe
-              description: The user's last name
+              description: The user's last name.
               pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
             dob:
               type: string
               example: '19810627'
-              description: The user's date of birth (YYYYMMDD)
+              description: The user's date of birth (YYYYMMDD).
               pattern: '^([12]\d{3}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01]))$'
             nationalId:
               type: string
               example: 123456789
-              description: The national identification number
+              description: The national identification number.
               minLength: 2
               maxLength: 50
             address:
-              $ref: '#/components/schemas/address'
+              type: object
+              properties:
+                address:
+                  type: string
+                  example: 123 Main St
+                  description: The user's address description.
+                  pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
+                extendedAddress:
+                  type: string
+                  example: Apt. 202
+                  description: The user's extended address.
+                  pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
+                city:
+                  type: string
+                  example: San Francisco
+                  description: The user's city.
+                  pattern: '^[a-zA-Z ,.''‘’-]{1,50}$'
+                region:
+                  type: string
+                  example: CA
+                  description: The user's region.
+                  pattern: '^[a-zA-Z]{2}$'
+                postalCode:
+                  type: string
+                  example: 94015
+                  description: The user's postal code.
+                  pattern: '^[a-zA-Z\d ,.''-]{1,50}$'
+              description: The user's address.
             emailAddress:
               type: string
               example: abc@def.com
-              description: The user's email address
+              description: The user's email address.
               pattern: '^[\w\.\''\‘\’-]+@([\w-]+\.)+[\w-]{2,4}$'
-            addresses:
-              type: array
-              items:
-                $ref: '#/components/schemas/address'
-              description: The user's addresses
-    address:
-      type: object
-      properties:
-        address:
-          type: string
-          example: 123 Main St
-          description: The user's address description
-          pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
-        extendedAddress:
-          type: string
-          example: Apt. 202
-          description: The user's extended address
-          pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
-        city:
-          type: string
-          example: San Francisco
-          description: The user's city
-          pattern: '^[a-zA-Z ,.''‘’-]{1,50}$'
-        region:
-          type: string
-          example: CA
-          description: The user's region
-          pattern: '^[a-zA-Z]{2}$'
-        postalCode:
-          type: string
-          example: 94015
-          description: The user's postal code
-          pattern: '^[a-zA-Z\d ,.''-]{1,50}$'
-      description: The user's address
     IdentityVerificationUserInfo:
       required:
         - countryCode
@@ -1230,6 +1340,11 @@ components:
         - phoneNumber
       type: object
       properties:
+        countryCode:
+          type: string
+          example: US
+          pattern: '^[a-zA-Z]{2}$'
+          description: Country code (case insensitive) as described in the ISO 3166-1 alpha-2 international standard.
         optedInConsentStatus:
           type: boolean
           example: true
@@ -1239,46 +1354,6 @@ components:
           example: 13143039289
           pattern: '^[1-9]\d{1,14}$'
           description: 'The phone number being queried in standard international format. It should be prefixed with the international dialling code, without the ''+''.'
-        firstName:
-          type: string
-          example: John
-          pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
-          description: The user's first name
-        lastName:
-          type: string
-          example: Doe
-          pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
-          description: The user's last name
-        countryCode:
-          type: string
-          example: US
-          pattern: '^[a-zA-Z]{2}$'
-          description: ISO-3166 Alpha-2 standard.
-        address:
-          type: string
-          example: 123 Main St
-          pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
-          description: The user's address
-        extendedAddress:
-          type: string
-          example: Apt. 202
-          pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
-          description: The user's address complement
-        city:
-          type: string
-          example: San Francisco
-          pattern: '^[a-zA-Z ,.''‘’-]{1,50}$'
-          description: The user's city
-        region:
-          type: string
-          example: CA
-          pattern: '^[a-zA-Z]{2}$'
-          description: The user's region
-        postalCode:
-          type: string
-          example: 94015
-          pattern: '^[a-zA-Z\d ,.''-]{1,50}$'
-          description: If address matching is desired at a minimum ``postalCode`` is required
         dob:
           type: string
           example: '1984-01-15'
@@ -1295,11 +1370,46 @@ components:
           type: string
           example: 123456789
           description: The national identification number. If the countryCode is US then, last4ssn or nationalId is required. If both nationalId and last4ssn are present then, use only the nationalId.
+        firstName:
+          type: string
+          example: John
+          pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
+          description: The user's first name.
+        lastName:
+          type: string
+          example: Doe
+          pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
+          description: The user's last name.
+        address:
+          type: string
+          example: 123 Main St
+          pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
+          description: The user's address.
+        extendedAddress:
+          type: string
+          example: Apt. 202
+          pattern: '^[a-zA-Z\d ,.''‘’-]{1,50}$'
+          description: The user's address complement.
+        city:
+          type: string
+          example: San Francisco
+          pattern: '^[a-zA-Z ,.''‘’-]{1,50}$'
+          description: The user's city.
+        region:
+          type: string
+          example: CA
+          pattern: '^[a-zA-Z]{2}$'
+          description: The user's region.
+        postalCode:
+          type: string
+          example: 94015
+          pattern: '^[a-zA-Z\d ,.''-]{1,50}$'
+          description: If address matching is desired at a minimum ``postalCode`` is required.
         emailAddress:
           type: string
           pattern: '^[\w\.\''\‘\’-]+@([\w-]+\.)+[\w-]{2,4}$'
           example: abc@def.com
-          description: The user's email address
+          description: The user's email address.
     IdentityPrefill:
       required:
         - countryCode
@@ -1308,34 +1418,16 @@ components:
         - scopedFields
       type: object
       properties:
+        countryCode:
+          type: string
+          example: US
+          pattern: '^[a-zA-Z]{2}$'
+          description: Country code (case insensitive) as described in the ISO 3166-1 alpha-2 international standard.
         phoneNumber:
           type: string
           pattern: '^[1-9]\d{1,14}$'
           example: 13143039289
           description: 'The phone number being queried in standard international format. It should be prefixed with the international dialling code, without the ''+''.'
-        dob:
-          type: string
-          example: '1984-01-15'
-          pattern: '^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$'
-          description: date of birth
-        last4ssn:
-          type: string
-          example: 1234
-          pattern: '^[0-9]{4}$'
-          description: The User's last four social security number digits. One of either dob or last4ssn is required. If the countryCode is US then, last4ssn or nationalId is required.
-        nationalId:
-          type: string
-          example: 123456789
-          description: The national identification number. If the countryCode is US then, last4ssn or nationalId is required.
-            If both nationalId and last4ssn are present then, use only the nationalId.
-            If the countryCode is US then this field must be a numeric value that is 9 digits long.
-          minLength: 2
-          maxLength: 50
-        countryCode:
-          type: string
-          example: US
-          pattern: '^[a-zA-Z]{2}$'
-          description: ISO-3166 Alpha-2 standard.
         scopedFields:
           minItems: 1
           type: array
@@ -1350,11 +1442,29 @@ components:
           type: boolean
           example: true
           description: 'Should be true, validation exception will be thrown if it is false.'
+        dob:
+          type: string
+          example: '1984-01-15'
+          pattern: '^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$'
+          description: Date of birth.
+        last4ssn:
+          type: string
+          example: 1234
+          pattern: '^[0-9]{4}$'
+          description: The User's last four social security number digits. One of either dob or last4ssn is required. If the countryCode is US then, last4ssn or nationalId is required.
+        nationalId:
+          type: string
+          example: 123456789
+          description: The national identification number. If the countryCode is US then, last4ssn or nationalId is required.
+            If both nationalId and last4ssn are present then, use only the nationalId.
+            If the countryCode is US then this field must be a numeric value that is 9 digits long.
+          minLength: 2
+          maxLength: 50
         performEligibilityCheck:
           type: boolean
           default: true
           example: true
-          description: If false will not perform an eligibility check
+          description: If false will not perform an eligibility check.
     TrustScoreUserInfo:
       required:
         - countryCode
@@ -1362,16 +1472,16 @@ components:
         - phoneNumber
       type: object
       properties:
+        countryCode:
+          type: string
+          example: US
+          pattern: '^[a-zA-Z]{2}$'
+          description: Country code (case insensitive) as described in the ISO 3166-1 alpha-2 international standard.
         phoneNumber:
           type: string
           pattern: '^[1-9]\d{1,14}$'
           example: 13143039289
           description: 'The phone number being queried in standard international format. It should be prefixed with the international dialling code, without the ''+''.'
-        countryCode:
-          type: string
-          example: US
-          pattern: '^[a-zA-Z]{2}$'
-          description: ISO-3166 Alpha-2 standard.
         optedInConsentStatus:
           type: boolean
           example: true
@@ -1380,7 +1490,7 @@ components:
           type: boolean
           default: true
           example: true
-          description: Default true.  If true will perform an eligibility check
+          description: Default true.  If true will perform an eligibility check.
     TrustScore:
       required:
         - transactionId
@@ -1391,12 +1501,12 @@ components:
         transactionId:
           type: string
           example: 7f83-b0c4-90e0-90b3-11e10800200c9a66
-          description: A random 128-bit. UUID representing the MIDS transaction
+          description: The transaction ID provided in the API response must be logged by the Relying Party. The Relying Party is required to provide the transaction ID when contacting the Mastercard customer support team.
           pattern: '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$'
         lineType:
           type: string
           example: 'landline'
-          description: 'A string value that denotes the line characteristics of the phone number. Possible values: ''landline'', ''mobile'', ''fixedVoIP'', ''nonFixedVoIP'', ''other'''
+          description: 'A string value that denotes the line characteristics of the phone number. Possible values: ''landline'', ''mobile'', ''fixedVoIP'', ''nonFixedVoIP'', ''other''.'
           minLength: 5
           maxLength: 12
         trustScore:
@@ -1476,7 +1586,7 @@ components:
         transactionId:
           type: string
           example: 7f83-b0c4-90e0-90b3-11e10800200c9a66
-          description: A random 128-bit. UUID representing the MIDS transaction
+          description: The transaction ID provided in the API response must be logged by the Relying Party. The Relying Party is required to provide the transaction ID when contacting the Mastercard customer support team.
           pattern: '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$'
         redirectTargetUrl:
           type: string
@@ -1494,7 +1604,7 @@ components:
           type: string
           pattern: '^[a-zA-Z]{2}$'
           example: US
-          description: ISO-3166 Alpha-2 standard.
+          description: Country code (case insensitive) as described in the ISO 3166-1 alpha-2 international standard.
         optedInConsentStatus:
           type: boolean
           example: true
@@ -1514,7 +1624,7 @@ components:
         transactionId:
           type: string
           example: 7f83-b0c4-90e0-90b3-11e10800200c9a66
-          description: A random 128-bit. UUID representing the MIDS transaction
+          description: The transaction ID provided in the API response must be logged by the Relying Party. The Relying Party is required to provide the transaction ID when contacting the Mastercard customer support team.
           pattern: '^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$'
         phoneNumber:
           type: string
@@ -1528,16 +1638,16 @@ components:
         - verificationFingerprint
       type: object
       properties:
+        countryCode:
+          type: string
+          example: US
+          pattern: '^[a-zA-Z]{2}$'
+          description: Country code (case insensitive) as described in the ISO 3166-1 alpha-2 international standard.
         verificationFingerprint:
           type: string
           example: 4f544a6a596a4d304d3249745a4752684f5330304d3249794c5745324e7a41744d44646d5a5459314d57526a593245306644413d3a4e5af1cf7e052335e57a51f3e0b1362fa58d4c220d9adef9179895b4c4beda59
           pattern: '^[a-zA-Z0-9]{128,2096}$'
           description: Retrieved by calling the `redirectTargetUrl` returned from `/device-authentications`.
-        countryCode:
-          type: string
-          example: US
-          pattern: '^[a-zA-Z]{2}$'
-          description: ISO-3166 Alpha-2 standard.
         optedInConsentStatus:
           type: boolean
           example: true
@@ -1550,7 +1660,7 @@ components:
         Errors:
           $ref: '#/components/schemas/Errors'
     Errors:
-      description: List of Errors
+      description: List of Errors.
       example:
         $ref: '#/components/examples/NotFoundExample'
       required:
@@ -1560,7 +1670,7 @@ components:
         Error:
           $ref: '#/components/schemas/ErrorList'
     ErrorList:
-      description: Error Details
+      description: Error Details.
       type: array
       minItems: 1
       items:
@@ -1570,11 +1680,11 @@ components:
       properties:
         Source:
           type: string
-          description: Source of where the error occured
+          description: Source of where the error occured.
           example: mids
         ReasonCode:
           type: string
-          description: Code of the error
+          description: Code of the error.
           example: USER_PROFILE_ID_NOT_FOUND
         Description:
           type: string
@@ -1582,12 +1692,12 @@ components:
           example: The provided userProfileId does not exist
         Recoverable:
           type: boolean
-          description: Indiciates if the error can be recovered from
+          description: Indiciates if the error can be recovered from.
           example: false
         Details:
           type: string
-          description: Contains information about the error
-          example: IOException Occured
+          description: Contains information about the error.
+          example:  IOException Occured
   responses:
     NotFoundError:
       description: Request didn't match an existing resource.
@@ -1648,7 +1758,7 @@ components:
             ForbiddenExampleUnauthorizedScopedFields:
               $ref: '#/components/examples/ForbiddenExampleUnauthorizedScopedFields'
     DataExtractionSuccessResponse:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1656,8 +1766,15 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DocumentVerificationExtractedData'
+          examples:
+            DocumentDataDriverLicense:
+              $ref: '#/components/examples/DocumentDataExampleDriverLicense'
+            DocumentDataPassaport:
+              $ref: '#/components/examples/DocumentDataExamplePassport'
+            DocumentDataExampleIDCard:
+              $ref: '#/components/examples/DocumentDataExampleIDCard'
     SmsOtpGenerationSuccessResponse:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1665,8 +1782,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Otp'
+          examples:
+            OtpExample:
+              $ref: '#/components/examples/OtpExample'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
     EmailOtpGenerationSuccessReponse:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1674,8 +1796,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Otp'
+          examples:
+            OtpExample:
+              $ref: '#/components/examples/OtpExample'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
     SmsOtpVerificationSuccessResponses:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1690,8 +1817,10 @@ components:
               $ref: '#/components/examples/IncorrectOtpCodeProvidedExample'
             OtpDoesNotExistExample:
               $ref: '#/components/examples/OtpDoesNotExistExample'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
     EmailOtpVerificationResponses:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1706,8 +1835,10 @@ components:
               $ref: '#/components/examples/IncorrectOtpCodeProvidedExample'
             OtpDoesNotExistExample:
               $ref: '#/components/examples/OtpDoesNotExistExample'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
     AccessTokenSuccessResponse:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1715,8 +1846,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/AccessToken'
+          examples:
+            AccessTokensResponsePayload:
+              $ref: '#/components/examples/AccessTokensResponsePayload'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
     MedicareCardSourceVerificationResponse:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1732,7 +1868,7 @@ components:
             MedicareDocumentInvalidExample:
               $ref: '#/components/examples/MedicareDocumentInvalidExample'
     DriversLicenseSourceVerificationResponse:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1741,7 +1877,7 @@ components:
           schema:
             $ref: '#/components/schemas/SourceVerificationResult'
     PassportSourceVerificationResponse:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1750,7 +1886,7 @@ components:
           schema:
             $ref: '#/components/schemas/SourceVerificationResult'
     IdentityVerificationResponse:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1758,8 +1894,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/IdentityVerification'
+          examples:
+            UserVerificationsResponsePayload:
+              $ref: '#/components/examples/UserVerificationsResponsePayload'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
     IdentityResponse:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1767,8 +1908,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Identity'
+          examples:
+            UserIdentitiesResponsePayload:
+              $ref: '#/components/examples/UserIdentitiesResponsePayload'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
     TrustScoreUserInfoResponse:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1776,8 +1922,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/TrustScore'
+          examples:
+            TrustScoreResponseExample:
+              $ref: '#/components/examples/TrustScoreResponseExample'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
+
     DeviceAuthenticationVerificationUrlResponse:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1786,7 +1938,7 @@ components:
           schema:
             $ref: '#/components/schemas/DeviceAuthenticationVerificationUrl'
     DevicePhoneNumberResponse:
-      description: Success
+      description: Success.
       headers:
         X-Transaction-ID:
           $ref: '#/components/headers/X-Transaction-ID'
@@ -1794,30 +1946,56 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DevicePhoneNumber'
+          examples:
+            DeviceAuthVerifResponsePayload:
+              $ref: '#/components/examples/DeviceAuthVerifResponsePayload'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
   requestBodies:
     SmsOtpGenerationRequest:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/SMSOtp'
+          examples:
+            SMSOtpExemple:
+              $ref: '#/components/examples/SMSOtpExample'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
       required: true
     EmailOtpGenerationRequest:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/EmailOtp'
+          examples:
+            EmailOtpExemple:
+              $ref: '#/components/examples/EmailOtpExample'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
+
       required: true
     SmsOtpVerificationRequest:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/OtpVerification'
+          examples:
+            OtpVerificationExample:
+              $ref: '#/components/examples/OtpVerificationExample'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
       required: true
     EmailOtpVerficationRequest:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/OtpVerification'
+          examples:
+            EmailVerificationExample:
+              $ref: '#/components/examples/EmailVerificationExample'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
       required: true
     AccessTokenRequest:
       content:
@@ -1836,30 +2014,57 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/PassportSourceVerificationRequestAttributes'
+          examples:
+            SourceVerPassportExample:
+              $ref: '#/components/examples/SourceVerPassportExample'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
       required: true
     DriversLicenseSourceVerificationRequest:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/DriversLicenseSourceVerificationRequestAttributes'
+          examples:
+            SourceVerDrivingLicenceExample:
+              $ref: '#/components/examples/SourceVerDrivingLicenceExample'
+      required: true
+    OpenBankingRegistrationRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OpenBankingRegistrationRequestAttributes'
       required: true
     IdentityVerificationRequest:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/IdentityVerificationUserInfo'
+          examples:
+            UserVerificationsExample:
+              $ref: '#/components/examples/UserVerificationsExample'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
       required: true
     IdentityRequest:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/IdentityPrefill'
+          examples:
+            UserIdentitiesExample:
+              $ref: '#/components/examples/UserIdentitiesExample'
       required: true
     TrustScoreRequest:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/TrustScoreUserInfo'
+          examples:
+            TrustScoreUserInfoExample:
+              $ref: '#/components/examples/TrustScoreUserInfoExample'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
       required: true
     DeviceIpAddressRequest:
       content:
@@ -1872,8 +2077,16 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DeviceVerificationFingerprint'
+          examples:
+            DeviceVerificationFingerprintExample:
+              $ref: '#/components/examples/DeviceVerificationFingerprintExample'
+            EncryptedPayloadExample:
+              $ref: '#/components/examples/EncryptedPayloadExample'
       required: true
   examples:
+    EncryptedPayloadExample:
+      value:
+        encryptedData: 'eyJraWQiOiIwMTQyNmRhY2JlMmRjYzA3NmQ1OWU1NDQ5N2NiNjBiMjdjZmQwMDE0ZjZmMGQyYTJiN2FmNjExNDg2NjYyMj...'
     OtpVerificationSuccessfulExample:
       value:
         responseCode: SUCCESS
@@ -1896,7 +2109,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: USER_PROFILE_ID_NOT_FOUND
-              Description: The provided userProfileId does not exist
+              Description: The provided userProfileId does not exist.
               Recoverable: false
     UnauthorizedExample:
       value:
@@ -1904,7 +2117,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: UNAUTHORIZED_REQUEST
-              Description: Unauthorized request
+              Description: Unauthorized request.
               Recoverable: false
     ForbiddenExample:
       value:
@@ -1912,7 +2125,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: CONSENT_NOT_GIVEN
-              Description: User Consent Not Given
+              Description: User Consent Not Given.
               Recoverable: false
     ForbiddenExampleUnauthorizedScopedFields:
       value:
@@ -1920,7 +2133,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: UNAUTHORIZED_SCOPED_FIELDS
-              Description: 'UNAUTHORIZED_SCOPED_FIELDS: Requested scoped fields are not part of whitelisted fields'
+              Description: 'UNAUTHORIZED_SCOPED_FIELDS: Requested scoped fields are not part of whitelisted fields.'
               Recoverable: false
               Details: null
     BadRequestExampleUserConsent:
@@ -1929,7 +2142,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: VALIDATION_ERROR
-              Description: Unexpected value 'Invalid' for enumerate field
+              Description: Unexpected value 'Invalid' for enumerate field.
               Recoverable: false
               Details: null
     BadRequestExampleCountryCode:
@@ -1938,7 +2151,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: VALIDATION_ERROR
-              Description: Invalid value US4 for 'countryCode'
+              Description: Invalid value US4 for 'countryCode'.
               Recoverable: false
               Details: null
     BadRequestExamplePhoneNumber:
@@ -1947,7 +2160,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: VALIDATION_ERROR
-              Description: Invalid value ASD for 'phoneNumber'
+              Description: Invalid value ASD for 'phoneNumber'.
               Recoverable: false
               Details: null
     BadRequestExampleIVPConnectionTimeout:
@@ -1965,7 +2178,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: IVP_SYSTEM_ERROR
-              Description: Received system error from the Identity Verification Provider. Please look at 'details' for additional information
+              Description: Received system error from the Identity Verification Provider. Please look at 'details' for additional information.
               Recoverable: false
               Details: System Error Received
     BadRequestExampleMedicareExpireDate:
@@ -1974,7 +2187,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: VALIDATION_ERROR
-              Description: Invalid value for 'expiry date'
+              Description: Invalid value for 'expiry date'.
               Recoverable: false
               Details: null
     BadRequestExampleMedicareName:
@@ -1983,7 +2196,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: VALIDATION_ERROR
-              Description: Invalid value for 'nameLine' field OR value exceeds allowed max characters
+              Description: Invalid value for 'nameLine' field OR value exceeds allowed max characters.
               Recoverable: false
               Details: null
     BadRequestExampleMedicareIndividualReferenceNo:
@@ -1992,7 +2205,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: VALIDATION_ERROR
-              Description: Invalid value for 'INDIVIDUAL_REFERENCE_NO'
+              Description: Invalid value for 'INDIVIDUAL_REFERENCE_NO'.
               Recoverable: false
               Details: null
     BadRequestExampleMedicareMedicareNumber:
@@ -2001,7 +2214,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: VALIDATION_ERROR
-              Description: Invalid value for 'Medicare card number'
+              Description: Invalid value for 'Medicare card number'.
               Recoverable: false
               Details: null
     BadRequestExampleMedicareCountryCode:
@@ -2010,7 +2223,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: VALIDATION_ERROR
-              Description: Invalid value for 'Country code'
+              Description: Invalid value for 'Country code'.
               Recoverable: false
               Details: null
     BadRequestExampleMedicareUserConsent:
@@ -2019,7 +2232,7 @@ components:
           Error:
             - Source: mids
               ReasonCode: VALIDATION_ERROR
-              Description: User consent not given
+              Description: User consent not given.
               Recoverable: false
               Details: null
     MedicareSuccessExample:
@@ -2032,12 +2245,264 @@ components:
       value:
         verificationResult: DOCUMENT_INVALID
         reason: Provided data is invalid or not electronically captured
+    DocumentDataExampleDriverLicense:
+      value:
+        status: SUCCESS
+        transactionId: 1ec14310-e85c-11ea-adc1-0242ac120002
+        documentData:
+          documentNumber: AB001234567
+          documentStatus: SUCCESS
+          documentType: DRIVER_LICENSE
+          dateOfBirth: '2020-09-09'
+          firstName: MIRIAM
+          lastName: Smith
+          expiryDate: '2020-10-10'
+          gender: F
+          cardNumber: "1234567890"
+          issuingCountry: AUS
+          issuingDate: '2020-09-09'
+          issuingPlace: Sydney
+          issuingAuthority: Australia
+          placeOfBirth: Sydney
+          addressLine1: 10 Boronia Street
+          addressLine2: 09 Boronia Street
+          addressZipCode: '10021'
+          addressCity: SYDNEY
+          addressCountry: Users Country
+          addressSubdivision: NSW
+          issuingState: NSW
+          formattedAddress: 22 Melville Street, Hobart 7000
+          selfie: /mJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanq.........................
+          documentImageFront: /mJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanq.........................
+          documentImageBack: /mJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanq.........................
+          facemap: /mJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanq.........................
+    DocumentDataExamplePassport:
+      value:
+        status: PENDING
+        transactionId: 1ec14310-e85c-11ea-adc1-0242ac120002
+        documentData:
+          documentNumber: N1234567
+          documentStatus: PENDING
+          documentType: PASSPORT
+          dateOfBirth: '2020-09-09'
+          firstName: John
+          lastName: Smith
+          expiryDate: '2020-10-10'
+          gender: F
+          issuingCountry: USA
+          issuingDate: '2020-09-09'
+          issuingPlace: New York
+          issuingAuthority: United States
+          placeOfBirth: Boston
+          addressLine1: 123 Main St.
+          addressLine2: New York
+          addressZipCode: '10021'
+          addressCity: New York
+          addressCountry: Users Country
+          addressSubdivision: MO
+          issuingState: MO
+          formattedAddress: 220 BLVD O FALLON
+          selfie: /mJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanq.........................
+          documentImageFront: /mJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanq.........................
+          documentImageBack: /mJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanq.........................
+          facemap: /mJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanq.........................
+    DocumentDataExampleIDCard:
+      value:
+        status: SUCCESS
+        transactionId: 5f4b0b79-8f7a-4731-b828-5e9db6e39e5a
+        documentData:
+          lastName: SMITH
+          gender: M
+          fathersName: WILLIAM SMITH
+          documentType: ID_CARD
+          issuingDate: '2010-01-01'
+          documentNumber: C204050123
+          expiryDate: 2030-12-31
+          issuingPlace: null
+          formattedAddress: null
+          cpf: '000.000.000-00'
+          addressLine1: null
+          documentStatus: SUCCESS
+          addressLine2: null
+          addressCity: null
+          addressZipCode: null
+          addressCountry: null
+          placeOfBirth: null
+          dateOfBirth: '1980-01-01'
+          issuingState: null
+          firstName: 'JOHN'
+          issuingAuthority: null
+          issuingCountry: 'BRA'
+          mothersName: 'JANE SMITH'
+          addressSubdivision: null
+          rgNumber: F204050123
+          selfie: /mJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanq.........................
+          documentImageFront: /mJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanq.........................
+          documentImageBack: /mJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanq.........................
+          facemap: /mJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanq.........................
+    SourceVerPassportExample:
+      value:
+        "documentNumber": "N1234567"
+        "userConsent": "ACCEPT"
+        "dateOfBirth": "1990-01-01"
+        "firstName": "John"
+        "lastName": "Smith"
+        "gender": "M"
+        "visaMatched": true
+        "visaIssuingCountry": "AUS"
+    SourceVerDrivingLicenceExample:
+      value:
+        "documentNumber": "AB001234567"
+        "userConsent": "ACCEPT"
+        "dateOfBirth": "1990-01-01"
+        "firstName": "John"
+        "lastName": "Smith"
+        "stateCode": "NSW"
+        "cardNumber": "1867530950"
+    UserVerificationsExample:
+      value:
+        "countryCode": "US"
+        "optedInConsentStatus": true
+        "phoneNumber": 13143039289
+        "dob": "1984-01-15"
+        "last4ssn": 1234
+        "nationalId": 123456789
+        "firstName": "John"
+        "lastName": "Doe"
+        "address": "123 Main St"
+        "extendedAddress": "Apt. 202"
+        "city": "San Francisco"
+        "region": "CA"
+        "postalCode": 94015
+        "emailAddress": "abc@def.com"
+    UserIdentitiesExample:
+      value:
+        "countryCode": "US"
+        "phoneNumber": 13143039289
+        "optedInConsentStatus": true
+        scopedFields:
+          - "firstName"
+          - "lastName"
+          - "emailAddress"
+          - "dob"
+          - "nationalId"
+          - "address"
+        "dob": "1984-01-15"
+        "last4ssn": 1234
+        "nationalId": 123456789
+        "performEligibilityCheck": false
+    AccessTokensResponsePayload:
+      value:
+        "transactionId": "f64d44f8-3b0c-449c-8b79-9e2bbe0b2f3b"
+        "sdkToken": "eyJhbGciOiJIUzUxMiIsInppcCI6IkdaSVAifQ.H4sIAAAAAAAAAJXNQWsCMRAF4P-Scwcym0km8eahVKGwthRtT5JkZlFBLKKuWPrf3fUfeH18770_o9fpyUwMBscWPZOLMZkXk2udy5AXSkoePWCoCKTeQkIXgS1JQ2IpqIz8gVNmYVECT64AZRcgDrPQZBz3Uy4BB9x3-gyvn9oNelFu6_d9uz0f3w69NnPys1nbL1_bjy9cXX7P37tNt1vVH8oq0Wocm4-b3ChJSAyWWIFcEEgqBYpnRsZcXULzfwdxCwYuCgEAAA.KaJPW0KH5yL5xFBcyxGIQnUsW895RPc1ohRXyx_JaIMrAlpIRga7WH6SyIylCBKHxSYd4gW9f-O5qabYPzQE7g"
+        "apiDataCenter": "US"
+        "documentVerificationUrl": "https://mastercard.web.apac-1.jumio.link/web/v4/app?authorizationToken=eyJhbGciOiJIUzUxMiIsInppcCI6IkdaSVAifQ.H4sIAAAAAAAAAJXOQQ5CIQxF0b0wtkmBFqgzh07_Dkp_iWM10cS4d0FX4PTm5OW9gj9P93AMsaRaS845CVM4BDU776sLi5JGiM06UGGDLiUCRaLa0rDR6uJf7FH6mBwYtUyCBcSywBznbmMfGdPEj-H_cNt8TL35zfVql1V-12o0SZ3AGysQ1wKNFCGbsjlyUsTw_gANOZ5b4gAAAA.2bo6KfOvGIswNRNTXv6QtoGvHyNYp_j3LwHia9DtuWna3y_LLI1VgPZle46Q5cFHuuMJB7g7y4wHbtogBX2HfQ&locale=en-US"
+    DeviceAuthVerifResponsePayload:
+      value:
+        "transactionId": "7f83-b0c4-90e0-90b3-11e10800200c9a66"
+        "phoneNumber": 13143039289
+    UserVerificationsResponsePayload:
+      value:
+        "transactionId": "7f83-b0c4-90e0-90b3-11e10800200c9a66"
+        name:
+          "firstName": 100
+          "lastName": 100
+          "nameScore": 100
+        address:
+          "streetNumber": 100
+          "street": true
+          "city": true
+          "region": true
+          "postalCode": true
+          "addressScore": 100
+        "identifiers":
+          "last4ssn": true
+          "nationalId": true
+          "dob": true
+        "email":
+          "emailAddress": true
+        "trustScore": 1000
+        "phoneNumber": 13143039289
+        "reasonCodes":
+          - "LP"
+          - "LS"
+        "verified": true
+        "lineType": "Mobile"
+    UserIdentitiesResponsePayload:
+      value:
+        "transactionId": "7f83-b0c4-90e0-90b3-11e10800200c9a66"
+        scopedFields:
+          "firstName": "John"
+          "lastName": "Doe"
+          "dob": "19810627"
+          "nationalId": 123456789
+        address:
+          "address": "123 Main St"
+          "extendedAddress": "Apt. 202"
+          "city": "San Francisco"
+          "region": "CA"
+          "postalCode": 94015
+        "emailAddress": "abc@def.com"
+        "addresses" :
+          "address": "123 Main St"
+          "extendedAddress": "Apt. 202"
+          "city": "San Francisco"
+          "region": "CA"
+          "postalCode": 94015
+    TrustScoreUserInfoExample:
+      value:
+        "countryCode": "US"
+        "phoneNumber": 13143039289
+        "optedInConsentStatus": true
+        "performEligibilityCheck": true
+    TrustScoreResponseExample:
+      value:
+        "transactionId": "7f83-b0c4-90e0-90b3-11e10800200c9a66"
+        "lineType": "landline"
+        "trustScore": 1000
+        "eligibility": true
+        reasonCodes:
+          - "LP"
+          - "LS"
+    DeviceVerificationFingerprintExample:
+      value:
+        "countryCode": "US"
+        "optedInConsentStatus": true
+        "verificationFingerprint": "4f544a6a596a4d304d3249745a4752684f5330304d3249794c5745324e7a41744d44646d5a5459314d57526a593245306644413d3a4e5af1cf7e052335e57a51f3e0b1362fa58d4c220d9adef9179895b4c4beda59"
+    SMSOtpExample:
+      value:
+        "countryCode": "BR"
+        "phoneNumber": "553453554563"
+        "locale": "en-GB"
+        "userConsent": "ACCEPT"
+    OtpExample:
+      value:
+        "otpId": "568def8e-d17b-11ea-87d0-0242ac12343"
+        "transactionId": "689def8e-d17b-89ea-87d0-0242ac12343"
+    OtpVerificationExample:
+      value:
+        "code": "123456"
+        "otpId": "63d04933-02b6-4ea4-adf9-68696e675a01"
+        "countryCode": "BR"
+        "userConsent": "ACCEPT"
+    EmailOtpExample:
+      value:
+        "countryCode": "BR"
+        "emailAddress": "john.dunne@domain.com"
+        "locale": "en-GB"
+        "userConsent": "ACCEPT"
+    EmailVerificationExample:
+      value:
+        "code": "123456"
+        "otpId": "63d04933-02b6-4ea4-adf9-68696e675a01"
+        "countryCode": "BR"
+        "userConsent": "ACCEPT"
   parameters:
     IssuingCountryParameter:
       name: "issuing_country"
       in: "path"
-      description: "Country of issue for the document in the ISO 3166-1 alpha-3 format"
-      example: USA
+      description: "Country of issue for the document in the ISO 3166-1 alpha-3 format, only AUS is an acceptable value for this parameter."
+      example: AUS
       required: true
       schema:
         type: string
@@ -2045,8 +2510,8 @@ components:
     ScanIdParameter:
       name: "scan_id"
       in: "path"
-      description: "UUID representing the scanned document verification process"
-      example: df52649e-4096-456a-bca0-751ee470009f
+      description: "UUID returned to the application/webpage on completion of the users interactions with the ID-V SDK."
+      example: 384cf4fd-2027-4f2a-ba0a-4b733bdcbbd2?scan_id=384cf4fd-2027-4f2a-ba0a-4b733bdcbbd2.
       required: true
       schema:
         maxLength: 36
@@ -2056,7 +2521,7 @@ components:
     UserConsentParameter:
       name: user_consent
       in: query
-      description: Consent from User
+      description: The value which best reflects the input of the User with regard to Consent to use their data (ACCEPT, DECLINE, REVOKE, EXPIRE).
       example: ACCEPT
       required: true
       schema:
@@ -2092,27 +2557,27 @@ components:
     DocumentTypeParameter:
       name: document_type
       in: query
-      description: document Type
+      description: The type of document scanned (DRIVING_LICENSE, PASSPORT, ID_CARD).
       example: DRIVING_LICENSE
       required: true
       schema:
         type: string
-        pattern: '^(DRIVING_LICENSE|PASSPORT)$'
+        pattern: '^(DRIVING_LICENSE|PASSPORT|ID_CARD)$'
     CountryParameter:
       name: user_selected_country
       in: query
-      description: country where the the document provided
+      description: The ISO 3166-1 alpha3 code which corresponds to the country from where the request to ID is originating from.
       example: USA
       required: true
       schema:
         type: string
         pattern: '^[A-Z]{3}'
-    XEncryptedPayload:
-      in: header
+    EncryptedPayloadParameter:
       name: X-Encrypted-Payload
+      in: header
+      description: Whether the request payload is encrypted with the Encyption Key generated from the Developer Zone Portal.
       example: true
-      description: |
-        Indicator that request is encrypted or to indicate that client is able to receive a encrypted response. If not set, payload will treated as plaintext.
+      required: false
       schema:
         type: boolean
   headers:
@@ -2120,4 +2585,4 @@ components:
       schema:
         type: string
         example: 2d077b9c-3c06-44ac-b00e-d78fe8cce606
-        description: A random 128-bit UUID representing the transaction
+        description: A random 128-bit UUID representing the transaction.

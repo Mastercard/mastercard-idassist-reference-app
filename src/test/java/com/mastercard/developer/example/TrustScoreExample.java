@@ -16,7 +16,7 @@ limitations under the License.
 
 package com.mastercard.developer.example;
 
-import com.mastercard.dis.mids.model.TrustScoreUserInfo;
+import com.mastercard.dis.mids.model.id.verification.TrustScoreUserInfo;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 

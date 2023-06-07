@@ -20,16 +20,18 @@ import com.mastercard.developer.example.SourceVerificationExample;
 import com.mastercard.developer.exception.ExceptionUtil;
 import com.mastercard.developer.exception.ServiceException;
 import com.mastercard.dis.mids.ApiException;
-import com.mastercard.dis.mids.api.IdDocumentVerificationApi;
-import com.mastercard.dis.mids.model.Error;
+import com.mastercard.dis.mids.api.IdDocumentDataSourceVerificationApi;
 import com.mastercard.dis.mids.model.id.verification.DriversLicenseSourceVerificationRequestAttributes;
+import com.mastercard.dis.mids.model.id.verification.Errors;
 import com.mastercard.dis.mids.model.id.verification.PassportSourceVerificationRequestAttributes;
 import com.mastercard.dis.mids.model.id.verification.SourceVerificationResult;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static com.mastercard.developer.example.SourceVerificationExample.DOCUMENT_ISSUING_COUNTRY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,7 +43,7 @@ import static org.mockito.Mockito.when;
 class SourceVerificationServiceImplTest {
 
     @Mock
-    private IdDocumentVerificationApi idDocumentVerificationApi;
+    private IdDocumentDataSourceVerificationApi idDocumentVerificationApi;
 
     @Mock
     private ExceptionUtil exceptionUtil;
@@ -49,23 +51,29 @@ class SourceVerificationServiceImplTest {
     @InjectMocks
     private SourceVerificationServiceImpl sourceVerificationServiceImpl;
 
-    @Test
-    void sourceVerificationPassport_sourceVerificationApiNoException_returningVerifiedResult() throws ApiException {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void sourceVerificationPassport_sourceVerificationApiNoException_returningVerifiedResult(boolean encrypt) throws ApiException {
+        ReflectionTestUtils.setField(sourceVerificationServiceImpl, "encryptionEnabled", encrypt);
+
         PassportSourceVerificationRequestAttributes sourceVerificationPassportAttributes = SourceVerificationExample.createSourceVerificationPassportRequestAttributes();
         SourceVerificationResult sourceVerificationResultExample = SourceVerificationExample.createSourceVerificationResult();
-        when(idDocumentVerificationApi.verifyPassport(eq(DOCUMENT_ISSUING_COUNTRY), eq(sourceVerificationPassportAttributes), eq(true))).thenReturn(sourceVerificationResultExample);
+        when(idDocumentVerificationApi.verifyPassport(eq(DOCUMENT_ISSUING_COUNTRY), eq(sourceVerificationPassportAttributes), eq(encrypt))).thenReturn(sourceVerificationResultExample);
 
         SourceVerificationResult sourceVerificationResult = sourceVerificationServiceImpl.sourceVerificationPassport(DOCUMENT_ISSUING_COUNTRY, sourceVerificationPassportAttributes);
 
         assertEquals(sourceVerificationResultExample, sourceVerificationResult);
     }
 
-    @Test
-    void sourceVerificationPassport_sourceVerificationApiException_logAndConvertToServiceException() throws ApiException {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void sourceVerificationPassport_sourceVerificationApiException_logAndConvertToServiceException(boolean encrypt) throws ApiException {
+        ReflectionTestUtils.setField(sourceVerificationServiceImpl, "encryptionEnabled", encrypt);
+
         PassportSourceVerificationRequestAttributes sourceVerificationPassportAttributes = SourceVerificationExample.createSourceVerificationPassportRequestAttributes();
         ApiException apiException = new ApiException();
-        ServiceException serviceException = new ServiceException(apiException, new Error());
-        doThrow(apiException).when(idDocumentVerificationApi).verifyPassport(eq(DOCUMENT_ISSUING_COUNTRY), eq(sourceVerificationPassportAttributes), eq(true));
+        ServiceException serviceException = new ServiceException(apiException, new Errors());
+        doThrow(apiException).when(idDocumentVerificationApi).verifyPassport(eq(DOCUMENT_ISSUING_COUNTRY), eq(sourceVerificationPassportAttributes), eq(encrypt));
         when(exceptionUtil.logAndConvertToServiceException(eq(apiException))).thenReturn(serviceException);
 
         try {
@@ -75,23 +83,29 @@ class SourceVerificationServiceImplTest {
         }
     }
 
-    @Test
-    void sourceVerificationDrivingLicense_sourceVerificationApiNoException_returningVerifiedResult() throws ApiException {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void sourceVerificationDrivingLicense_sourceVerificationApiNoException_returningVerifiedResult(boolean encrypt) throws ApiException {
+        ReflectionTestUtils.setField(sourceVerificationServiceImpl, "encryptionEnabled", encrypt);
+
         DriversLicenseSourceVerificationRequestAttributes sourceVerificationDrivingLicenseAttributes = SourceVerificationExample.createSourceVerificationDrivingLicenseRequestAttributes();
         SourceVerificationResult sourceVerificationResultExample = SourceVerificationExample.createSourceVerificationResult();
-        when(idDocumentVerificationApi.verifyDriversLicense(eq(DOCUMENT_ISSUING_COUNTRY), eq(sourceVerificationDrivingLicenseAttributes), eq(false))).thenReturn(sourceVerificationResultExample);
+        when(idDocumentVerificationApi.verifyDriversLicense(eq(DOCUMENT_ISSUING_COUNTRY), eq(sourceVerificationDrivingLicenseAttributes), eq(encrypt))).thenReturn(sourceVerificationResultExample);
 
         SourceVerificationResult sourceVerificationResult = sourceVerificationServiceImpl.sourceVerificationDrivingLicense(DOCUMENT_ISSUING_COUNTRY, sourceVerificationDrivingLicenseAttributes);
 
         assertEquals(sourceVerificationResultExample, sourceVerificationResult);
     }
 
-    @Test
-    void sourceVerificationDrivingLicense_sourceVerificationApiException_logAndConvertToServiceException() throws ApiException {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void sourceVerificationDrivingLicense_sourceVerificationApiException_logAndConvertToServiceException(boolean encrypt) throws ApiException {
+        ReflectionTestUtils.setField(sourceVerificationServiceImpl, "encryptionEnabled", encrypt);
+
         DriversLicenseSourceVerificationRequestAttributes sourceVerificationDrivingLicenseAttributes = SourceVerificationExample.createSourceVerificationDrivingLicenseRequestAttributes();
         ApiException apiException = new ApiException();
-        ServiceException serviceException = new ServiceException(apiException, new Error());
-        doThrow(apiException).when(idDocumentVerificationApi).verifyDriversLicense(eq(DOCUMENT_ISSUING_COUNTRY), eq(sourceVerificationDrivingLicenseAttributes), eq(false));
+        ServiceException serviceException = new ServiceException(apiException, new Errors());
+        doThrow(apiException).when(idDocumentVerificationApi).verifyDriversLicense(eq(DOCUMENT_ISSUING_COUNTRY), eq(sourceVerificationDrivingLicenseAttributes), eq(encrypt));
         when(exceptionUtil.logAndConvertToServiceException(eq(apiException))).thenReturn(serviceException);
 
         try {

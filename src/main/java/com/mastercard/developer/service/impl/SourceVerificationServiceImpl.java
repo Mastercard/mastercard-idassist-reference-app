@@ -19,25 +19,28 @@ package com.mastercard.developer.service.impl;
 import com.mastercard.developer.exception.ExceptionUtil;
 import com.mastercard.developer.service.SourceVerificationService;
 import com.mastercard.dis.mids.ApiException;
-import com.mastercard.dis.mids.api.IdDocumentVerificationApi;
+import com.mastercard.dis.mids.api.IdDocumentDataSourceVerificationApi;
 import com.mastercard.dis.mids.model.id.verification.DriversLicenseSourceVerificationRequestAttributes;
 import com.mastercard.dis.mids.model.id.verification.PassportSourceVerificationRequestAttributes;
 import com.mastercard.dis.mids.model.id.verification.SourceVerificationResult;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class SourceVerificationServiceImpl implements SourceVerificationService {
 
-    private final IdDocumentVerificationApi idDocumentVerificationApi;
+    private final IdDocumentDataSourceVerificationApi idDocumentVerificationApi;
     private final ExceptionUtil exceptionUtil;
+
+    @Value("${mastercard.client.encryption.enable:false}")
+    private Boolean encryptionEnabled;
 
     @Override
     public SourceVerificationResult sourceVerificationPassport(String issuingCountry, PassportSourceVerificationRequestAttributes sourceVerificationPassportAttributes) {
         try {
-
-            return idDocumentVerificationApi.verifyPassport(issuingCountry, sourceVerificationPassportAttributes, Boolean.TRUE);
+            return idDocumentVerificationApi.verifyPassport(issuingCountry, sourceVerificationPassportAttributes, encryptionEnabled);
         } catch (ApiException e) {
             throw exceptionUtil.logAndConvertToServiceException(e);
         }
@@ -46,7 +49,7 @@ public class SourceVerificationServiceImpl implements SourceVerificationService 
     @Override
     public SourceVerificationResult sourceVerificationDrivingLicense(String issuingCountry, DriversLicenseSourceVerificationRequestAttributes sourceVerificationDrivingLicenseAttributes) {
         try {
-            return idDocumentVerificationApi.verifyDriversLicense(issuingCountry, sourceVerificationDrivingLicenseAttributes, Boolean.FALSE);
+            return idDocumentVerificationApi.verifyDriversLicense(issuingCountry, sourceVerificationDrivingLicenseAttributes, encryptionEnabled);
         } catch (ApiException e) {
             throw exceptionUtil.logAndConvertToServiceException(e);
         }

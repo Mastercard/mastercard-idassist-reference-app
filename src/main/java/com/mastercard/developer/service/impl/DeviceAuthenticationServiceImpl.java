@@ -20,31 +20,35 @@ import com.mastercard.developer.exception.ExceptionUtil;
 import com.mastercard.developer.service.DeviceAuthenticationService;
 import com.mastercard.dis.mids.ApiException;
 import com.mastercard.dis.mids.api.DeviceAuthenticationApi;
-import com.mastercard.dis.mids.model.DeviceAuthenticationVerificationUrl;
-import com.mastercard.dis.mids.model.DeviceIpAddress;
-import com.mastercard.dis.mids.model.DevicePhoneNumber;
-import com.mastercard.dis.mids.model.DeviceVerificationFingerprint;
+import com.mastercard.dis.mids.model.id.verification.DeviceAuthenticationVerificationUrl;
+import com.mastercard.dis.mids.model.id.verification.DeviceIpAddress;
+import com.mastercard.dis.mids.model.id.verification.DevicePhoneNumber;
+import com.mastercard.dis.mids.model.id.verification.DeviceVerificationFingerprint;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 public class DeviceAuthenticationServiceImpl implements DeviceAuthenticationService {
 
-    private final DeviceAuthenticationApi deviceAuthenticationApi;
+    private final DeviceAuthenticationApi idVerifyDeviceAuthenticationApi;
     private final ExceptionUtil exceptionUtil;
 
+    @Value("${mastercard.client.encryption.enable:false}")
+    private Boolean encryptionEnabled;
+
     @Autowired
-    public DeviceAuthenticationServiceImpl(DeviceAuthenticationApi deviceAuthenticationApi, ExceptionUtil exceptionUtil) {
-        this.deviceAuthenticationApi = deviceAuthenticationApi;
+    public DeviceAuthenticationServiceImpl(DeviceAuthenticationApi idVerifyDeviceAuthenticationApi, ExceptionUtil exceptionUtil) {
+        this.idVerifyDeviceAuthenticationApi = idVerifyDeviceAuthenticationApi;
         this.exceptionUtil = exceptionUtil;
     }
 
     @Override
     public DeviceAuthenticationVerificationUrl createDeviceAuthentication(DeviceIpAddress deviceIpAddress) {
         try {
-            return deviceAuthenticationApi.deviceAuthentication(deviceIpAddress);
+            return idVerifyDeviceAuthenticationApi.deviceAuthentication(deviceIpAddress, encryptionEnabled);
         } catch (ApiException e) {
             throw exceptionUtil.logAndConvertToServiceException(e);
         }
@@ -53,7 +57,7 @@ public class DeviceAuthenticationServiceImpl implements DeviceAuthenticationServ
     @Override
     public DevicePhoneNumber createDeviceAuthenticationVerification(DeviceVerificationFingerprint deviceVerificationFingerprint) {
         try {
-            return deviceAuthenticationApi.deviceAuthenticationVerification(deviceVerificationFingerprint);
+            return idVerifyDeviceAuthenticationApi.deviceAuthenticationVerification(deviceVerificationFingerprint, encryptionEnabled);
         } catch (ApiException e) {
             throw exceptionUtil.logAndConvertToServiceException(e);
         }

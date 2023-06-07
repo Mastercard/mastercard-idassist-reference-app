@@ -16,33 +16,20 @@ limitations under the License.
 
 package com.mastercard.developer.example;
 
-import com.mastercard.dis.mids.model.SMSOTPGeneration;
-import com.mastercard.dis.mids.model.SMSOTPVerification;
+import com.mastercard.dis.mids.model.id.verification.SMSOtp;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SmsOtpExample {
 
-    public static SMSOTPGeneration getSmsOtp() {
-        SMSOTPGeneration smsOtp = new SMSOTPGeneration();
-        smsOtp.setPhoneNumber("11234567890");
+    public static SMSOtp getSmsOtp() {
+        SMSOtp smsOtp = new SMSOtp();
+        smsOtp.setPhoneNumber(""); // Your complete phone number
         smsOtp.setCountryCode("US");
-        smsOtp.setOptedInConsentStatus(true);
+        smsOtp.setUserConsent(SMSOtp.UserConsentEnum.ACCEPT);
+        smsOtp.locale("en-US");
 
         return smsOtp;
-    }
-
-    public static SMSOTPVerification getOtpVerification() {
-        SMSOTPVerification otpVerification = new SMSOTPVerification();
-        //For unit testing update the OtpId with the otpId from the /sms-otps response
-        otpVerification.setOtpId("c24e93a5-a0aa-4873-ad38-50d28b332969");
-
-        //For unit testing update the code with opt received on the phone
-        otpVerification.setCode("123456");
-        otpVerification.setCountryCode("US");
-        otpVerification.setOptedInConsentStatus(true);
-
-        return otpVerification;
     }
 }

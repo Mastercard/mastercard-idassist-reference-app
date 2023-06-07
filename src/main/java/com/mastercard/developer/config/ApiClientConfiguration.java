@@ -22,12 +22,13 @@ import com.mastercard.developer.interceptor.OkHttpOAuth1InterceptorCustom;
 import com.mastercard.developer.utils.AuthenticationUtils;
 import com.mastercard.dis.mids.ApiClient;
 import com.mastercard.dis.mids.api.DeviceAuthenticationApi;
-import com.mastercard.dis.mids.api.IdDocumentDataExtractionOcrApi;
-import com.mastercard.dis.mids.api.IdDocumentVerificationApi;
-import com.mastercard.dis.mids.api.IdVerifyDeviceAuthenticationApi;
-import com.mastercard.dis.mids.api.IdVerifyUserApi;
-import com.mastercard.dis.mids.api.OtpApi;
-import com.mastercard.dis.mids.api.UserApi;
+import com.mastercard.dis.mids.api.IdDocumentDataExtractionApi;
+import com.mastercard.dis.mids.api.IdDocumentDataSourceVerificationApi;
+import com.mastercard.dis.mids.api.EmailOtpApi;
+import com.mastercard.dis.mids.api.SmsOtpApi;
+import com.mastercard.dis.mids.api.PhoneNumberBasedIdentityVerificationApi;
+import com.mastercard.dis.mids.api.PhoneNumberBasedIdentityPrefillApi;
+import com.mastercard.dis.mids.api.PhoneNumberTrustScoringApi;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.StringUtils;
@@ -64,23 +65,11 @@ public class ApiClientConfiguration {
     @Value("${mastercard.cicd.enabled:false}")
     private boolean cicdEnabled;
 
-    @Value("${mastercard.api.idAssist.base.path}")
-    private String idAssistBasePath;
-
-    @Value("${mastercard.api.idAssist.consumer.key}")
-    private String idAssistConsumerKey;
-
-    @Value("${mastercard.api.idAssist.keystore.alias}")
-    private String idAssistKeystoreAlias;
-
-    @Value("${mastercard.api.idAssist.keystore.password}")
-    private String idAssistKeystorePassword;
-
-    @Value("${mastercard.api.idAssist.key.file}")
-    private Resource idAssistKeyFile;
+    @Value("${mastercard.client.encryption.enable:false}")
+    private Boolean encryptionEnabled;
 
 
-    private OkHttpOAuth1InterceptorCustom curstomInterceptorOAuth = new OkHttpOAuth1InterceptorCustom();
+    private OkHttpOAuth1InterceptorCustom customInterceptorOAuth = new OkHttpOAuth1InterceptorCustom();
     private static final String X_ENCRYPTED_HEADER = "X-Encrypted-Payload";
     private static final String ERROR_MSG_CONFIGURING_CLIENT = "Error occurred while configuring ApiClient";
 
@@ -89,6 +78,7 @@ public class ApiClientConfiguration {
         if (null == idVerifyKeyFile || StringUtils.isEmpty(idVerifyConsumerKey)) {
             throw new ServiceException(".p12 file or consumerKey does not exist, please add details in application.properties");
         }
+        showPayloadEncryptionEnableMessage();
     }
 
     @Bean
@@ -98,17 +88,15 @@ public class ApiClientConfiguration {
             idVerifyApiClient.setBasePath(idVerifyBasePath);
             idVerifyApiClient.setDebugging(true);
             idVerifyApiClient.setReadTimeout(40000);
-            idVerifyApiClient.addDefaultHeader(X_ENCRYPTED_HEADER,  Boolean.FALSE.toString());
+            idVerifyApiClient.addDefaultHeader(X_ENCRYPTED_HEADER, Boolean.toString(encryptionEnabled));
             // you can add extra headers here ..
 
             OkHttpClient.Builder okHttpClientBuilder = idVerifyApiClient.getHttpClient().newBuilder();
             if (!cicdEnabled) {
                 PrivateKey signingKey = AuthenticationUtils.loadSigningKey(idVerifyKeyFile.getFile().getAbsolutePath(), idVerifyKeystoreAlias, idVerifyKeystorePassword);
-                curstomInterceptorOAuth.initSignerIdVerify(idVerifyConsumerKey, signingKey);
-                idVerifyApiClient.setHttpClient(okHttpClientBuilder
-                        .addInterceptor(encryptionDecryptionInterceptor) // This interceptor will encrypt and decrypt the payload, uncomment this line if encrypted payload is enabled
-                        .addInterceptor(curstomInterceptorOAuth)
-                        .build());
+                customInterceptorOAuth.initSignerIdVerify(idVerifyConsumerKey, signingKey);
+                OkHttpClient client = buildClient(okHttpClientBuilder, encryptionDecryptionInterceptor);
+                idVerifyApiClient.setHttpClient(client);
             } else {
                 idVerifyApiClient.setHttpClient(okHttpClientBuilder.build());
             }
@@ -116,55 +104,39 @@ public class ApiClientConfiguration {
         } catch (Exception e) {
             log.error(ERROR_MSG_CONFIGURING_CLIENT, e);
             throw new ServiceException(ERROR_MSG_CONFIGURING_CLIENT);
-
         }
     }
 
 
+    OkHttpClient buildClient(OkHttpClient.Builder builder, EncryptionDecryptionInterceptor encryptionDecryptionInterceptor) {
+        return Boolean.TRUE.equals(encryptionEnabled) ? (
+                builder.addInterceptor(encryptionDecryptionInterceptor)
+                        .addInterceptor(customInterceptorOAuth).build()
+        ) : (
+                builder.addInterceptor(customInterceptorOAuth)
+                        .build()
+        );
+    }
 
-
-
-    @Bean
-    public ApiClient idAssistApiClient(EncryptionDecryptionInterceptor encryptionDecryptionInterceptor) {
-        ApiClient idAssistApiClient = new ApiClient();
-        try {
-            idAssistApiClient.setBasePath(idAssistBasePath);
-            idAssistApiClient.setDebugging(true);
-            idAssistApiClient.setReadTimeout(40000);
-            OkHttpClient.Builder okHttpClientBuilder = idAssistApiClient.getHttpClient().newBuilder();
-            // you can add extra headers here ..
-
-            if (!cicdEnabled) {
-                PrivateKey signingKey = AuthenticationUtils.loadSigningKey(idAssistKeyFile.getFile().getAbsolutePath(), idAssistKeystoreAlias, idAssistKeystorePassword);
-                curstomInterceptorOAuth.initSignerAssist(idAssistConsumerKey, signingKey);
-                idAssistApiClient.setHttpClient(okHttpClientBuilder
-                        .addInterceptor(encryptionDecryptionInterceptor) // This interceptor will encrypt and decrypt the payload, uncomment this line if encrypted payload is enabled
-                        .addInterceptor(curstomInterceptorOAuth)
-                        .build());
-            } else {
-                idAssistApiClient.setHttpClient(okHttpClientBuilder.build());
-            }
-            return idAssistApiClient;
-        } catch (Exception e) {
-            log.error(ERROR_MSG_CONFIGURING_CLIENT, e);
-            throw new ServiceException(ERROR_MSG_CONFIGURING_CLIENT);
-
+    void showPayloadEncryptionEnableMessage() {
+        if (Boolean.TRUE.equals(encryptionEnabled)) {
+            log.warn("<--- Payload encryption enabled. To disable it change mastercard.client.encryption.enable in application.properties to false --->");
         }
     }
 
     @Bean
-    public IdDocumentDataExtractionOcrApi idDocumentDataExtractionOcrApi(ApiClient idVerifyApiClient) {
-        return new IdDocumentDataExtractionOcrApi(idVerifyApiClient);
+    public IdDocumentDataExtractionApi idDocumentDataExtractionOcrApi(ApiClient idVerifyApiClient) {
+        return new IdDocumentDataExtractionApi(idVerifyApiClient);
     }
 
     @Bean
-    public IdDocumentVerificationApi idDocumentVerificationApi(ApiClient idVerifyApiClient) {
-        return new IdDocumentVerificationApi(idVerifyApiClient);
+    public IdDocumentDataSourceVerificationApi idDocumentVerificationApi(ApiClient idVerifyApiClient) {
+        return new IdDocumentDataSourceVerificationApi(idVerifyApiClient);
     }
 
     @Bean
-    public UserApi userApi(ApiClient idAssistApiClient) {
-        return new UserApi(idAssistApiClient);
+    public PhoneNumberBasedIdentityPrefillApi phoneNumberBasedIdentityPrefillApi(ApiClient idAssistApiClient) {
+        return new PhoneNumberBasedIdentityPrefillApi(idAssistApiClient);
     }
 
     @Bean
@@ -173,18 +145,23 @@ public class ApiClientConfiguration {
     }
 
     @Bean
-    public IdVerifyUserApi idVerifyUserApi(ApiClient idVerifyApiClient) {
-        return new IdVerifyUserApi(idVerifyApiClient);
+    public PhoneNumberBasedIdentityVerificationApi phoneNumberBasedIdentityVerificationApi(ApiClient idAssistApiClient) {
+        return new PhoneNumberBasedIdentityVerificationApi(idAssistApiClient);
     }
 
     @Bean
-    public IdVerifyDeviceAuthenticationApi idVerifyDeviceAuthenticationApi(ApiClient idVerifyApiClient) {
-        return new IdVerifyDeviceAuthenticationApi(idVerifyApiClient);
+    public PhoneNumberTrustScoringApi phoneNumberTrustScoringApi(ApiClient idAssistApiClient) {
+        return new PhoneNumberTrustScoringApi(idAssistApiClient);
     }
 
     @Bean
-    public OtpApi otpApi(ApiClient idAssistApiClient) {
-        return new OtpApi(idAssistApiClient);
+    public SmsOtpApi otpApi(ApiClient idAssistApiClient) {
+        return new SmsOtpApi(idAssistApiClient);
+    }
+
+    @Bean
+    public EmailOtpApi emailOtpApi(ApiClient apiClient) {
+        return new EmailOtpApi(apiClient);
     }
 
 }

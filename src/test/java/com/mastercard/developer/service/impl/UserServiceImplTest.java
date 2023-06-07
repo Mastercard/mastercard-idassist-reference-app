@@ -19,34 +19,42 @@ package com.mastercard.developer.service.impl;
 import com.mastercard.developer.exception.ExceptionUtil;
 import com.mastercard.developer.exception.ServiceException;
 import com.mastercard.dis.mids.ApiException;
-import com.mastercard.dis.mids.api.UserApi;
-import com.mastercard.dis.mids.model.Identity;
-import com.mastercard.dis.mids.model.IdentityPrefill;
-import com.mastercard.dis.mids.model.IdentityVerification;
-import com.mastercard.dis.mids.model.IdentityVerificationUserInfo;
-import com.mastercard.dis.mids.model.TrustScore;
-import com.mastercard.dis.mids.model.TrustScoreUserInfo;
+import com.mastercard.dis.mids.api.PhoneNumberBasedIdentityPrefillApi;
+import com.mastercard.dis.mids.api.PhoneNumberBasedIdentityVerificationApi;
+import com.mastercard.dis.mids.api.PhoneNumberTrustScoringApi;
+import com.mastercard.dis.mids.model.id.verification.Identity;
+import com.mastercard.dis.mids.model.id.verification.IdentityPrefill;
+import com.mastercard.dis.mids.model.id.verification.IdentityVerification;
+import com.mastercard.dis.mids.model.id.verification.IdentityVerificationUserInfo;
+import com.mastercard.dis.mids.model.id.verification.TrustScore;
+import com.mastercard.dis.mids.model.id.verification.TrustScoreUserInfo;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceImplTest {
+class UserServiceImplTest {
 
     @Mock
-    private UserApi userApi;
+    private PhoneNumberBasedIdentityPrefillApi userApiPrefillMock;
+    @Mock
+    private PhoneNumberBasedIdentityVerificationApi userApiIdentityMock;
+    @Mock
+    private PhoneNumberTrustScoringApi trustScoreApiMock;
 
     @Mock
     private ExceptionUtil exceptionUtil;
@@ -54,73 +62,91 @@ public class UserServiceImplTest {
     @InjectMocks
     private UserServiceImpl userService;
 
-    @Test
-    public void testCreate() throws ServiceException, ApiException {
-        when(userApi.identityAPI(eq(new IdentityPrefill()))).thenReturn(getIdentity());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testCreate(boolean encrypt) throws ServiceException, ApiException {
+        ReflectionTestUtils.setField(userService, "encryptionEnabled", encrypt);
 
-        Identity result = userService.create(new IdentityPrefill());
+        when(userApiPrefillMock.userIdentity(eq(new IdentityPrefill()), eq(encrypt))).thenReturn(getIdentity());
 
-        verify(userApi, times(1)).identityAPI(eq(new IdentityPrefill()));
+        Identity result = userService.userIdentity(new IdentityPrefill());
+
+        verify(userApiPrefillMock, times(1)).userIdentity(eq(new IdentityPrefill()), eq(encrypt));
         assertAll(
                 () -> assertNotNull(result),
                 () -> assertEquals("transactionId", result.getTransactionId())
         );
     }
 
-    @Test
-    public void testCreateError() throws ApiException {
-        when(userApi.identityAPI(eq(new IdentityPrefill()))).thenThrow(new ApiException());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testCreateError(boolean encrypt) throws ApiException {
+        ReflectionTestUtils.setField(userService, "encryptionEnabled", encrypt);
+
+        when(userApiPrefillMock.userIdentity(eq(new IdentityPrefill()), eq(encrypt))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
         IdentityPrefill identityPrefill = new IdentityPrefill();
-        Assertions.assertThrows(ServiceException.class, () -> userService.create(identityPrefill));
+        Assertions.assertThrows(ServiceException.class, () -> userService.userIdentity(identityPrefill));
 
-        verify(userApi, times(1)).identityAPI(eq(new IdentityPrefill()));
+        verify(userApiPrefillMock, times(1)).userIdentity(eq(new IdentityPrefill()), eq(encrypt));
     }
 
-    @Test
-    public void testCreateUserVerification() throws ServiceException, ApiException {
-        when(userApi.identityVerificationAPI(eq(new IdentityVerificationUserInfo()))).thenReturn(getIdentityVerification());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testCreateUserVerification(boolean encrypt) throws ServiceException, ApiException {
+        ReflectionTestUtils.setField(userService, "encryptionEnabled", encrypt);
 
-        IdentityVerification result = userService.createUserVerification(new IdentityVerificationUserInfo());
+        when(userApiIdentityMock.identityVerificationAPI(eq(new IdentityVerificationUserInfo()), eq(encrypt))).thenReturn(getIdentityVerification());
 
-        verify(userApi, times(1)).identityVerificationAPI(eq(new IdentityVerificationUserInfo()));
+        IdentityVerification result = userService.identityVerification(new IdentityVerificationUserInfo());
+
+        verify(userApiIdentityMock, times(1)).identityVerificationAPI(eq(new IdentityVerificationUserInfo()), eq(encrypt));
         assertAll(
                 () -> assertNotNull(result),
                 () -> assertEquals("transactionId", result.getTransactionId())
         );
     }
 
-    @Test
-    public void testCreateUserVerificationError() throws ApiException {
-        when(userApi.identityVerificationAPI(eq(new IdentityVerificationUserInfo()))).thenThrow(new ApiException());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testCreateUserVerificationError(boolean encrypt) throws ApiException {
+        ReflectionTestUtils.setField(userService, "encryptionEnabled", encrypt);
+
+        when(userApiIdentityMock.identityVerificationAPI(eq(new IdentityVerificationUserInfo()), eq(encrypt))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
         IdentityVerificationUserInfo identityVerificationUserInfo = new IdentityVerificationUserInfo();
-        Assertions.assertThrows(ServiceException.class, () -> userService.createUserVerification(identityVerificationUserInfo));
+        Assertions.assertThrows(ServiceException.class, () -> userService.identityVerification(identityVerificationUserInfo));
 
-        verify(userApi, times(1)).identityVerificationAPI(eq(new IdentityVerificationUserInfo()));
+        verify(userApiIdentityMock, times(1)).identityVerificationAPI(eq(new IdentityVerificationUserInfo()), eq(encrypt));
     }
 
-    @Test
-    public void testTrustScore() throws ServiceException, ApiException {
-        when(userApi.trustAPI(eq(new TrustScoreUserInfo()))).thenReturn(new TrustScore());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testTrustScore(boolean encrypt) throws ServiceException, ApiException {
+        ReflectionTestUtils.setField(userService, "encryptionEnabled", encrypt);
 
-        TrustScore result = userService.trust(new TrustScoreUserInfo());
+        when(trustScoreApiMock.userTrustScore(eq(new TrustScoreUserInfo()), eq(encrypt))).thenReturn(new TrustScore());
+
+        TrustScore result = userService.userTrustScore(new TrustScoreUserInfo());
 
         assertNotNull(result);
-        verify(userApi, times(1)).trustAPI(eq(new TrustScoreUserInfo()));
+        verify(trustScoreApiMock, times(1)).userTrustScore(eq(new TrustScoreUserInfo()), eq(encrypt));
     }
 
-    @Test
-    public void testTrustScoreError() throws ServiceException, ApiException {
-        when(userApi.trustAPI(eq(new TrustScoreUserInfo()))).thenThrow(new ApiException());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testTrustScoreError(boolean encrypt) throws ServiceException, ApiException {
+        ReflectionTestUtils.setField(userService, "encryptionEnabled", encrypt);
+
+        when(trustScoreApiMock.userTrustScore(eq(new TrustScoreUserInfo()), eq(encrypt))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
 
-        TrustScoreUserInfo trustScoreUserInfo  = new TrustScoreUserInfo();
-        Assertions.assertThrows(ServiceException.class, () -> userService.trust(trustScoreUserInfo));
+        TrustScoreUserInfo trustScoreUserInfo = new TrustScoreUserInfo();
+        Assertions.assertThrows(ServiceException.class, () -> userService.userTrustScore(trustScoreUserInfo));
 
-        verify(userApi, times(1)).trustAPI(eq(new TrustScoreUserInfo()));
+        verify(trustScoreApiMock, times(1)).userTrustScore(eq(new TrustScoreUserInfo()), eq(encrypt));
     }
 
     private Identity getIdentity() {

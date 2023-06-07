@@ -27,7 +27,6 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
 import java.io.File;
-import java.security.cert.CertificateFactory;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

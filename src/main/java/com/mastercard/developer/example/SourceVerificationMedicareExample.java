@@ -52,5 +52,4 @@ public class SourceVerificationMedicareExample {
         medicareCardVerificationResult.setVerificationResult(VERIFICATION_RESULT_CODE_VERIFIED);
         return medicareCardVerificationResult;
     }
-
 }
