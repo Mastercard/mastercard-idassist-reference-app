@@ -57,7 +57,7 @@ public class DataExtractionsServiceExample {
     public static final String DOCUMENT_TYPE_DRIVING_LICENSE = "DRIVING_LICENSE";
     public static final String DOCUMENT_ISSUING_COUNTRY = "AUS";
     public static final String USER_SELECTED_COUNTRY = "USA";
-    public static final String SCAN_ID = "5226539e-78e7-45ac-a924-072d1301c24c";
+    public static final String SCAN_ID = "970c1b25-7717-40a9-bed8-4ab5d9cc244b";
     public static final String USER_CONSENT = "ACCEPT";
     public static final String RETRIEVE_SELFIE = "false";
     public static final String RETRIEVE_DOCUMENT_IMAGES = "false";
@@ -86,7 +86,6 @@ public class DataExtractionsServiceExample {
         DocumentVerificationExtractedDataDocumentData documentData = new DocumentVerificationExtractedDataDocumentData();
         documentData.setDocumentType(DOCUMENT_TYPE_DRIVING_LICENSE);
         documentData.setDocumentNumber(DRIVING_LICENSE_DOCUMENT_NUMBER);
-        documentData.setCardNumber(DRIVING_LICENSE_CARD_NUMBER);
         documentData.setDateOfBirth(DOCUMENT_DATE_OF_BIRTH.toString());
         documentData.setGender(DOCUMENT_GENDER);
         documentData.setFirstName(DOCUMENT_FIRST_NAME);

@@ -16,8 +16,8 @@ limitations under the License.
 
 package com.mastercard.developer.example;
 
-import com.mastercard.dis.mids.model.IdentityPrefill;
-import com.mastercard.dis.mids.model.IdentityVerificationUserInfo;
+import com.mastercard.dis.mids.model.id.verification.IdentityPrefill;
+import com.mastercard.dis.mids.model.id.verification.IdentityVerificationUserInfo;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -59,5 +59,4 @@ public class UserExample {
 
         return IdentityVerificationUserInfo;
     }
-
 }

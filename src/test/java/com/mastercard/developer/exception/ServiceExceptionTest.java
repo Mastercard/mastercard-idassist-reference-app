@@ -16,13 +16,12 @@ limitations under the License.
 
 package com.mastercard.developer.exception;
 
-import com.mastercard.dis.mids.model.Error;
-import com.mastercard.dis.mids.model.ErrorErrors;
-
-import com.mastercard.dis.mids.model.ErrorErrorsErrorInner;
+import com.mastercard.dis.mids.model.id.verification.Error;
+import com.mastercard.dis.mids.model.id.verification.Errors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,15 +50,15 @@ class ServiceExceptionTest {
             Assertions.assertAll(
                     () -> assertEquals(MESSAGE, e.getMessage()),
                     () -> {
-                        Error errors = e.getErrors();
+                        Errors errors = e.getErrors();
                         assertNotNull(errors);
-                        List<ErrorErrorsErrorInner> errorList = errors.getErrors().getError();
+                        List<Error> errorList = errors.getError();
                         assertFalse(errorList.isEmpty());
                         errorList.forEach(error -> {
                             assertEquals(SOURCE, error.getSource());
                             assertEquals(REASON_CODE, error.getReasonCode());
                             assertEquals(DESCRIPTION, error.getDescription());
-                            assertFalse(Objects.requireNonNull( error.getRecoverable()));
+                            assertFalse(Objects.requireNonNull(error.getRecoverable()));
                         });
                     }
             );
@@ -70,11 +69,12 @@ class ServiceExceptionTest {
         throw new ServiceException(MESSAGE, getCustomError());
     }
 
-    private Error getCustomError() {
-        ErrorErrorsErrorInner error = new ErrorErrorsErrorInner();
-        error.source(SOURCE).reasonCode(REASON_CODE).description(DESCRIPTION).recoverable(false);
-        ErrorErrors errorList = new ErrorErrors();
-        errorList.addErrorItem(error);
-        return new Error().errors(errorList);
+    private Errors getCustomError() {
+        Error error = new Error()
+                .source(SOURCE)
+                .reasonCode(REASON_CODE)
+                .description(DESCRIPTION)
+                .recoverable(false);
+        return new Errors().error(Collections.singletonList(error));
     }
 }

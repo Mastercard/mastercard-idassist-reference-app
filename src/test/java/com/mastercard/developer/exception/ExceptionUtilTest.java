@@ -22,7 +22,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mastercard.dis.mids.ApiException;
 import com.mastercard.dis.mids.JSON;
-import com.mastercard.dis.mids.model.Error;
+import com.mastercard.dis.mids.model.id.verification.ApiError;
+import com.mastercard.dis.mids.model.id.verification.Error;
+import com.mastercard.dis.mids.model.id.verification.Errors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +35,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
+
 import java.util.Collections;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.times;
@@ -68,21 +72,33 @@ class ExceptionUtilTest {
     }
 
     @Test
+    void logAndConvertToServiceException_notNullApiException_loggingAndReturningServiceException_throwException_and_logged_twice() {
+        ApiException apiExceptionExample = new ApiException(ERROR_MESSAGE, ERROR_CODE, Collections.emptyMap(), "{data:{testError: invalid_format}}");
+
+        ServiceException serviceException = exceptionUtil.logAndConvertToServiceException(apiExceptionExample);
+        assertNotNull(serviceException);
+
+        verify(mockedAppender, times(2)).doAppend(loggingEventCaptor.capture());
+    }
+
+    @Test
     void logAndConvertToServiceException_notNullApiException_loggingAndReturningServiceException() {
         ApiException apiExceptionExample = createApiExceptionExample();
-        Error errorExample = new Error();
 
         ServiceException serviceException = exceptionUtil.logAndConvertToServiceException(apiExceptionExample);
         assertNotNull(serviceException);
 
         verify(mockedAppender, times(1)).doAppend(loggingEventCaptor.capture());
-        assertEquals("Error wile processing request " + apiExceptionExample.getMessage() + " " + apiExceptionExample.getResponseBody(), loggingEventCaptor.getValue().getFormattedMessage());
+        assertEquals("Error while processing request " + apiExceptionExample.getMessage() + " " + apiExceptionExample.getResponseBody(), loggingEventCaptor.getValue().getFormattedMessage());
         assertEquals(apiExceptionExample, serviceException.getCause());
-        assertEquals(errorExample, serviceException.getErrors());
+        assertEquals(RESPONSE_BODY, serviceException.getErrors().getError().get(0).getDescription());
     }
 
     private ApiException createApiExceptionExample() {
-        return new ApiException(ERROR_MESSAGE, ERROR_CODE, Collections.emptyMap(), RESPONSE_BODY);
+        ApiError apiError = new ApiError();
+        Errors errors = new Errors();
+        errors.setError(Collections.singletonList(new Error().description(RESPONSE_BODY)));
+        apiError.setErrors(errors);
+        return new ApiException(ERROR_MESSAGE, ERROR_CODE, Collections.emptyMap(), apiError.toJson());
     }
-
 }

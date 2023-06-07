@@ -19,11 +19,12 @@ package com.mastercard.developer.service.impl;
 import com.mastercard.developer.exception.ExceptionUtil;
 import com.mastercard.developer.service.MedicareSourceVerificationService;
 import com.mastercard.dis.mids.ApiException;
-import com.mastercard.dis.mids.api.IdDocumentVerificationApi;
+import com.mastercard.dis.mids.api.IdDocumentDataSourceVerificationApi;
 import com.mastercard.dis.mids.model.id.verification.MedicareCardSourceVerificationRequestAttributes;
 import com.mastercard.dis.mids.model.id.verification.MedicareCardSourceVerificationResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -31,13 +32,16 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MedicareSourceVerificationServiceImpl implements MedicareSourceVerificationService {
 
-    private final IdDocumentVerificationApi idDocumentVerificationApi;
+    private final IdDocumentDataSourceVerificationApi idDocumentVerificationApi;
     private final ExceptionUtil exceptionUtil;
+
+    @Value("${mastercard.client.encryption.enable:false}")
+    private Boolean encryptionEnabled;
 
     @Override
     public MedicareCardSourceVerificationResult createMedicareCardRequest(String issuingCountry, MedicareCardSourceVerificationRequestAttributes medicareCardRequestAttributes) {
         try {
-            return idDocumentVerificationApi.verifyMedicareCard(issuingCountry, medicareCardRequestAttributes,Boolean.FALSE);
+            return idDocumentVerificationApi.verifyMedicareCard(issuingCountry, medicareCardRequestAttributes, encryptionEnabled);
         } catch (ApiException e) {
             throw exceptionUtil.logAndConvertToServiceException(e);
         }

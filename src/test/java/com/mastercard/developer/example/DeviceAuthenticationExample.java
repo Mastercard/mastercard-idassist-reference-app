@@ -16,8 +16,8 @@ limitations under the License.
 
 package com.mastercard.developer.example;
 
-import com.mastercard.dis.mids.model.DeviceIpAddress;
-import com.mastercard.dis.mids.model.DeviceVerificationFingerprint;
+import com.mastercard.dis.mids.model.id.verification.DeviceIpAddress;
+import com.mastercard.dis.mids.model.id.verification.DeviceVerificationFingerprint;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 

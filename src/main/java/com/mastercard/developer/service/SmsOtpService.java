@@ -16,13 +16,14 @@ limitations under the License.
 
 package com.mastercard.developer.service;
 
-import com.mastercard.dis.mids.model.SMSOTP;
-import com.mastercard.dis.mids.model.SMSOTPGeneration;
-import com.mastercard.dis.mids.model.SMSOTPVerification;
-import com.mastercard.dis.mids.model.SMSOTPVerificationResult;
+import com.mastercard.dis.mids.model.id.verification.Otp;
+import com.mastercard.dis.mids.model.id.verification.OtpVerification;
+import com.mastercard.dis.mids.model.id.verification.OtpVerificationResult;
+import com.mastercard.dis.mids.model.id.verification.SMSOtp;
 
 public interface SmsOtpService {
-    SMSOTP createOtpsSMS(SMSOTPGeneration smsOtp);
 
-    SMSOTPVerificationResult createVerifyOtps(SMSOTPVerification otpVerification);
+    Otp createSMSOtp(SMSOtp smsOtp);
+
+    OtpVerificationResult createVerifyOtp(OtpVerification otpVerification);
 }

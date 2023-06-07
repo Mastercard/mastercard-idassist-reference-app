@@ -16,29 +16,28 @@ limitations under the License.
 
 package com.mastercard.developer.example;
 
-import com.mastercard.dis.mids.model.DeviceIpAddress;
-import com.mastercard.dis.mids.model.DeviceVerificationFingerprint;
+import com.mastercard.dis.mids.model.id.verification.DeviceIpAddress;
+import com.mastercard.dis.mids.model.id.verification.DeviceVerificationFingerprint;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DeviceAuthenticationExample {
 
-    public static DeviceIpAddress getDeviceIpAddress() {
+    public static com.mastercard.dis.mids.model.id.verification.DeviceIpAddress getDeviceIpAddress() {
         //Update the ip address when trying to run this test case.
-        DeviceIpAddress deviceIpAddress = new DeviceIpAddress();
-        deviceIpAddress.setDeviceIp("127.0.0.1");
-        deviceIpAddress.setCountryCode("US");
+        com.mastercard.dis.mids.model.id.verification.DeviceIpAddress deviceIpAddress = new DeviceIpAddress();
         deviceIpAddress.setOptedInConsentStatus(true);
+        deviceIpAddress.setCountryCode("US");
+        deviceIpAddress.setDeviceIp("127.0.0.1");
         return deviceIpAddress;
     }
 
-    public static DeviceVerificationFingerprint getDeviceVerificationFingerprint() {
-        DeviceVerificationFingerprint deviceVerificationFingerprint = new DeviceVerificationFingerprint();
-        deviceVerificationFingerprint.setVerificationFingerprint("4f544a6a596a4d304d3249745a4752684f5330304d3249794c5745324e7a41744d44646d5a5459314d57526a593245306644413d3a4e5af1cf7e052335e57a51f3e0b1362fa58d4c220d9adef9179895b4c4beda59");
-        deviceVerificationFingerprint.setCountryCode("US");
+    public static com.mastercard.dis.mids.model.id.verification.DeviceVerificationFingerprint getDeviceVerificationFingerprint() {
+        com.mastercard.dis.mids.model.id.verification.DeviceVerificationFingerprint deviceVerificationFingerprint = new DeviceVerificationFingerprint();
         deviceVerificationFingerprint.setOptedInConsentStatus(true);
-
+        deviceVerificationFingerprint.setCountryCode("US");
+        deviceVerificationFingerprint.setVerificationFingerprint("4f544a6a596a4d304d3249745a4752684f5330304d3249794c5745324e7a41744d44646d5a5459314d57526a593245306644413d3a4e5af1cf7e052335e57a51f3e0b1362fa58d4c220d9adef9179895b4c4beda59");
         return deviceVerificationFingerprint;
     }
 }

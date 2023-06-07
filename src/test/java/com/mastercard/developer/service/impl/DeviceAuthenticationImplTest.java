@@ -21,84 +21,96 @@ import com.mastercard.developer.exception.ExceptionUtil;
 import com.mastercard.developer.exception.ServiceException;
 import com.mastercard.dis.mids.ApiException;
 import com.mastercard.dis.mids.api.DeviceAuthenticationApi;
-import com.mastercard.dis.mids.model.DeviceAuthenticationVerificationUrl;
-import com.mastercard.dis.mids.model.DeviceIpAddress;
-import com.mastercard.dis.mids.model.DevicePhoneNumber;
-import com.mastercard.dis.mids.model.DeviceVerificationFingerprint;
+import com.mastercard.dis.mids.model.id.verification.DeviceAuthenticationVerificationUrl;
+import com.mastercard.dis.mids.model.id.verification.DeviceIpAddress;
+import com.mastercard.dis.mids.model.id.verification.DevicePhoneNumber;
+import com.mastercard.dis.mids.model.id.verification.DeviceVerificationFingerprint;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
-public class DeviceAuthenticationImplTest {
+class DeviceAuthenticationImplTest {
 
     @Mock
-    private DeviceAuthenticationApi deviceAuthenticationApi;
+    private DeviceAuthenticationApi idVerifyDeviceAuthenticationApi;
 
     @Mock
     private ExceptionUtil exceptionUtil;
 
     @InjectMocks
-    private DeviceAuthenticationServiceImpl deviceAuthenticationService;
+    private DeviceAuthenticationServiceImpl idVerifyDeviceAuthenticationService;
 
-    @Test
-    public void testcreateDeviceAuthentication() throws ServiceException, ApiException {
-        when(deviceAuthenticationApi.deviceAuthentication(eq(DeviceAuthenticationExample.getDeviceIpAddress()))).thenReturn(getDeviceAuthenticationVerificationUrl());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testCreateDeviceAuthentication(boolean encrypt) throws ServiceException, ApiException {
+        ReflectionTestUtils.setField(idVerifyDeviceAuthenticationService, "encryptionEnabled", encrypt);
 
-        DeviceAuthenticationVerificationUrl result = deviceAuthenticationService.createDeviceAuthentication(DeviceAuthenticationExample.getDeviceIpAddress());
+        when(idVerifyDeviceAuthenticationApi.deviceAuthentication(eq(DeviceAuthenticationExample.getDeviceIpAddress()), eq(encrypt))).thenReturn(getDeviceAuthenticationVerificationUrl());
 
-        verify(deviceAuthenticationApi, times(1)).deviceAuthentication(eq(DeviceAuthenticationExample.getDeviceIpAddress()));
+        DeviceAuthenticationVerificationUrl result = idVerifyDeviceAuthenticationService.createDeviceAuthentication(DeviceAuthenticationExample.getDeviceIpAddress());
+
+        verify(idVerifyDeviceAuthenticationApi, times(1)).deviceAuthentication(eq(DeviceAuthenticationExample.getDeviceIpAddress()), eq(encrypt));
         assertAll(
                 () -> assertNotNull(result),
                 () -> assertEquals("transactionId", result.getTransactionId())
         );
     }
 
-    @Test
-    public void testcreateDeviceAuthenticationError() throws ApiException {
-        when(deviceAuthenticationApi.deviceAuthentication(eq(new DeviceIpAddress()))).thenThrow(new ApiException());
-        when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testCreateDeviceAuthenticationError(boolean encrypt) throws ApiException {
+        ReflectionTestUtils.setField(idVerifyDeviceAuthenticationService, "encryptionEnabled", encrypt);
 
+        when(idVerifyDeviceAuthenticationApi.deviceAuthentication(eq(new DeviceIpAddress()), eq(encrypt))).thenThrow(new ApiException());
+        when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
         DeviceIpAddress deviceIpAddress = new DeviceIpAddress();
-        Assertions.assertThrows(ServiceException.class, () -> deviceAuthenticationService.createDeviceAuthentication(deviceIpAddress));
+        Assertions.assertThrows(ServiceException.class, () -> idVerifyDeviceAuthenticationService.createDeviceAuthentication(deviceIpAddress));
 
-        verify(deviceAuthenticationApi, times(1)).deviceAuthentication(eq(new DeviceIpAddress()));
+        verify(idVerifyDeviceAuthenticationApi, times(1)).deviceAuthentication(eq(new DeviceIpAddress()), eq(encrypt));
     }
 
-    @Test
-    public void testcreateDeviceAuthenticationVerification() throws ServiceException, ApiException {
-        when(deviceAuthenticationApi.deviceAuthenticationVerification(eq(DeviceAuthenticationExample.getDeviceVerificationFingerprint()))).thenReturn(getDevicePhoneNumber());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testCreateDeviceAuthenticationVerification(boolean encrypt) throws ServiceException, ApiException {
+        ReflectionTestUtils.setField(idVerifyDeviceAuthenticationService, "encryptionEnabled", encrypt);
 
-        DevicePhoneNumber result = deviceAuthenticationService.createDeviceAuthenticationVerification(DeviceAuthenticationExample.getDeviceVerificationFingerprint());
+        when(idVerifyDeviceAuthenticationApi.deviceAuthenticationVerification(eq(DeviceAuthenticationExample.getDeviceVerificationFingerprint()), eq(encrypt))).thenReturn(getDevicePhoneNumber());
 
-        verify(deviceAuthenticationApi, times(1)).deviceAuthenticationVerification(eq(DeviceAuthenticationExample.getDeviceVerificationFingerprint()));
+        DevicePhoneNumber result = idVerifyDeviceAuthenticationService.createDeviceAuthenticationVerification(DeviceAuthenticationExample.getDeviceVerificationFingerprint());
+
+        verify(idVerifyDeviceAuthenticationApi, times(1)).deviceAuthenticationVerification(eq(DeviceAuthenticationExample.getDeviceVerificationFingerprint()), eq(encrypt));
         assertAll(
                 () -> assertNotNull(result),
                 () -> assertEquals("transactionId", result.getTransactionId())
         );
     }
 
-    @Test
-    public void testcreateDeviceAuthenticationVerificationError() throws ServiceException, ApiException {
-        when(deviceAuthenticationApi.deviceAuthenticationVerification(eq(new DeviceVerificationFingerprint()))).thenThrow(new ApiException());
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testCreateDeviceAuthenticationVerificationError(boolean encrypt) throws ServiceException, ApiException {
+        ReflectionTestUtils.setField(idVerifyDeviceAuthenticationService, "encryptionEnabled", encrypt);
+
+        when(idVerifyDeviceAuthenticationApi.deviceAuthenticationVerification(eq(new DeviceVerificationFingerprint()), eq(encrypt))).thenThrow(new ApiException());
         when(exceptionUtil.logAndConvertToServiceException(any(ApiException.class))).thenReturn(new ServiceException(""));
-
         DeviceVerificationFingerprint deviceVerificationFingerprint = new DeviceVerificationFingerprint();
-        Assertions.assertThrows(ServiceException.class, () -> deviceAuthenticationService.createDeviceAuthenticationVerification(deviceVerificationFingerprint));
+        Assertions.assertThrows(ServiceException.class, () -> idVerifyDeviceAuthenticationService.createDeviceAuthenticationVerification(deviceVerificationFingerprint));
 
-        verify(deviceAuthenticationApi, times(1)).deviceAuthenticationVerification(eq(new DeviceVerificationFingerprint()));
+        verify(idVerifyDeviceAuthenticationApi, times(1)).deviceAuthenticationVerification(eq(new DeviceVerificationFingerprint()), eq(encrypt));
     }
 
     private DeviceAuthenticationVerificationUrl getDeviceAuthenticationVerificationUrl() {

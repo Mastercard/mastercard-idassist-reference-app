@@ -17,10 +17,10 @@ limitations under the License.
 package com.mastercard.developer.exception;
 
 import com.mastercard.dis.mids.ApiException;
-import com.mastercard.dis.mids.JSON;
-import com.mastercard.dis.mids.model.Error;
+import com.mastercard.dis.mids.model.id.verification.ApiError;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.message.StringFormattedMessage;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -29,11 +29,15 @@ import org.springframework.stereotype.Component;
 public class ExceptionUtil {
 
     public ServiceException logAndConvertToServiceException(ApiException e) {
-        log.error("Error wile processing request {} {}", e.getMessage(), e.getResponseBody());
-        return new ServiceException(e, deserializeErrors(e.getResponseBody()));
-    }
+        log.error("Error while processing request {} {}", e.getMessage(), e.getResponseBody());
 
-    private Error deserializeErrors(String body) {
-        return JSON.deserialize(body, Error.class);
+        try {
+            ApiError errorResponse = ApiError.fromJson(e.getResponseBody());
+            return new ServiceException(e, errorResponse);
+        } catch (Exception ioException) {
+            String exceptionMessage = new StringFormattedMessage("Error while deserializing error response {}", ioException.getMessage()).toString();
+            log.error(exceptionMessage);
+            return new ServiceException(exceptionMessage);
+        }
     }
 }

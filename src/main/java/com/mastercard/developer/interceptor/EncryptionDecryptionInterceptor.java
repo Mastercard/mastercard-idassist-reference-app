@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+
 import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateKey;
@@ -39,30 +40,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-
-
-
 @Slf4j
 @Component
 public class EncryptionDecryptionInterceptor implements Interceptor {
-
-    @Value("${mastercard.api.idAssist.encryption.certificateFile}")
-    private Resource idAssistEncryptionCertificateFile;
-
-    @Value("${mastercard.api.idAssist.encryption.fingerPrint}")
-    private String idAssistEncryptionCertificateFingerPrint;
-
-
-    @Value("${mastercard.api.idAssist.decryption.keystore}")
-    private Resource idAssistDecryptionKeystore;
-
-    @Value("${mastercard.api.idAssist.decryption.alias}")
-    private String idAssistDecryptionKeystoreAlias;
-
-    @Value("${mastercard.api.idAssist.decryption.keystore.password}")
-    private String idAssistDecryptionKeystorePassword;
-
-    // ************************ID Verify Credentials*************************
 
     @Value("${mastercard.api.idVerify.encryption.certificateFile}")
     private Resource idVerifyEncryptionCertificateFile;
@@ -82,7 +62,6 @@ public class EncryptionDecryptionInterceptor implements Interceptor {
     @Value("${mastercard.api.idVerify.consumer.key}")
     private String idVerifyConsumerKey;
 
-
     @NotNull
     @Override
     public Response intercept(Chain chain) throws IOException {
@@ -95,14 +74,7 @@ public class EncryptionDecryptionInterceptor implements Interceptor {
         if (isEncryptionRequired(request)) {
             try {
                 String body = bodyToString(request);
-                String encryptedRequest;
-
-                if(request.url().toString().contains("mcidassist")){
-                   encryptedRequest = EncryptionUtils.jweEncrypt(body, idAssistEncryptionCertificateFile, idAssistEncryptionCertificateFingerPrint);
-
-               }else{
-                   encryptedRequest = EncryptionUtils.jweEncrypt(body, idVerifyEncryptionCertificateFile, idVerifyEncryptionCertificateFingerPrint);
-               }
+                String encryptedRequest = EncryptionUtils.jweEncrypt(body, idVerifyEncryptionCertificateFile, idVerifyEncryptionCertificateFingerPrint);
 
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("encryptedData", encryptedRequest);
@@ -110,7 +82,7 @@ public class EncryptionDecryptionInterceptor implements Interceptor {
                 Request.Builder post = request
                         .newBuilder()
                         .headers(request.headers())
-                        .post(RequestBody.create(jsonObject.toJSONString(),MediaType.parse("application/json"))   );
+                        .post(RequestBody.create(jsonObject.toJSONString(), MediaType.parse("application/json")));
 
                 return post.build();
 
@@ -133,18 +105,12 @@ public class EncryptionDecryptionInterceptor implements Interceptor {
                 log.info("Encrypted Payload received from server: {}", string);
                 JSONObject parse = (JSONObject) JSONValue.parse(string);
 
-                PrivateKey signingKey;
-                if(request.url().toString().contains("mcidassist")) {
-                    signingKey = AuthenticationUtils.loadSigningKey(idAssistDecryptionKeystore.getFile().getAbsolutePath(), idAssistDecryptionKeystoreAlias, idAssistDecryptionKeystorePassword);
-                }else{
-                    signingKey = AuthenticationUtils.loadSigningKey(idVerifyDecryptionKeystore.getFile().getAbsolutePath(), idVerifyDecryptionKeystoreAlias, idVerifyDecryptionKeystorePassword);
-
-                }
+                PrivateKey signingKey = AuthenticationUtils.loadSigningKey(idVerifyDecryptionKeystore.getFile().getAbsolutePath(), idVerifyDecryptionKeystoreAlias, idVerifyDecryptionKeystorePassword);
 
                 String decryptedPayload = EncryptionUtils.jweDecrypt(parse.getAsString("encryptedData"), (RSAPrivateKey) signingKey);
 
                 Response.Builder responseBuilder = encryptedResponse.newBuilder();
-                ResponseBody decryptedBody = ResponseBody.create(decryptedPayload,responseBody.contentType() );
+                ResponseBody decryptedBody = ResponseBody.create(decryptedPayload, responseBody.contentType());
 
                 return responseBuilder
                         .body(decryptedBody)
@@ -160,15 +126,17 @@ public class EncryptionDecryptionInterceptor implements Interceptor {
 
     private boolean isEncryptionRequired(Request request) {
         List<String> list = Arrays.asList(
-                "/sms-otps",
                 "/user-identities",
                 "/user-verifications",
                 "/trust-score",
                 "/device-authentication-verifications",
-               "/device-authentications",
+                "/device-authentications",
                 "/source-verifications/{issuing_country}/medicare-cards",
                 "/passports",
                 "/source-verifications/{issuing_country}/driving-licenses",
+                "/email-otps",
+                "/email-otp-verifications",
+                "/sms-otps",
                 "/sms-otp-verifications");
         return list.stream().anyMatch(entry -> request.url().uri().getPath().contains(entry));
     }
@@ -179,10 +147,13 @@ public class EncryptionDecryptionInterceptor implements Interceptor {
                 "/device-authentications",
                 "/trust-scores",
                 "/user-identities",
-                "/sms-otps",
                 "/user-verifications",
                 "/data-extractions/scans",
-                "/device-authentication-verifications");
+                "/device-authentication-verifications",
+                "/email-otps",
+                "/email-otp-verifications",
+                "/sms-otps",
+                "/sms-otp-verifications");
         return list.stream().anyMatch(entry -> request.url().uri().getPath().contains(entry));
     }
 

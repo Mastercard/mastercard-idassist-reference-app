@@ -41,7 +41,6 @@ import static com.mastercard.developer.utils.EncryptionUtils.loadEncryptionCerti
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EncryptionUtils {
 
-
     public static String jweEncrypt(String plainData, Resource certificateFile, String keyFingerPrint) {
         try {
             return encryptWithPublicKey(plainData, keyFingerPrint, certificateFile.getFile().getPath());

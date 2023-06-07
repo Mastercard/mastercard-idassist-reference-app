@@ -16,17 +16,17 @@ limitations under the License.
 
 package com.mastercard.developer.example;
 
-import com.mastercard.dis.mids.model.TrustScoreUserInfo;
+import com.mastercard.dis.mids.model.id.verification.TrustScoreUserInfo;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TrustScoreExample {
 
-    public static TrustScoreUserInfo getTrustScoreUserInfo() {
-        TrustScoreUserInfo request = new TrustScoreUserInfo();
+    public static com.mastercard.dis.mids.model.id.verification.TrustScoreUserInfo getTrustScoreUserInfo() {
+        com.mastercard.dis.mids.model.id.verification.TrustScoreUserInfo request = new TrustScoreUserInfo();
         request.setCountryCode("US");
-        request.setPhoneNumber("12001062100");
+        request.setPhoneNumber("11122233344");
         request.setOptedInConsentStatus(true);
         request.setPerformEligibilityCheck(true);
 

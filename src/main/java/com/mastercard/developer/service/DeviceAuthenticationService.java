@@ -16,10 +16,10 @@ limitations under the License.
 
 package com.mastercard.developer.service;
 
-import com.mastercard.dis.mids.model.DeviceAuthenticationVerificationUrl;
-import com.mastercard.dis.mids.model.DeviceIpAddress;
-import com.mastercard.dis.mids.model.DevicePhoneNumber;
-import com.mastercard.dis.mids.model.DeviceVerificationFingerprint;
+import com.mastercard.dis.mids.model.id.verification.DeviceAuthenticationVerificationUrl;
+import com.mastercard.dis.mids.model.id.verification.DeviceIpAddress;
+import com.mastercard.dis.mids.model.id.verification.DevicePhoneNumber;
+import com.mastercard.dis.mids.model.id.verification.DeviceVerificationFingerprint;
 
 public interface DeviceAuthenticationService {
 

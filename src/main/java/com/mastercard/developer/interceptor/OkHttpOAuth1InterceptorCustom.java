@@ -13,14 +13,9 @@ import java.util.List;
 public class OkHttpOAuth1InterceptorCustom implements Interceptor {
 
     private OkHttpSigner signerIdVerify;
-    private OkHttpSigner signerMcAssist;
 
     public void initSignerIdVerify(String consumerKey, PrivateKey signingKey) {
         this.signerIdVerify = new OkHttpSigner(consumerKey, signingKey);
-    }
-
-    public void initSignerAssist(String consumerKey, PrivateKey signingKey) {
-        this.signerMcAssist = new OkHttpSigner(consumerKey, signingKey);
     }
 
 
@@ -28,18 +23,10 @@ public class OkHttpOAuth1InterceptorCustom implements Interceptor {
 
         Request.Builder request = chain.request().newBuilder();
 
-        if (chain.request().url().toString().contains("mcidassist")) {
-            if (isOAuth1RequiredAssist(chain.request())) {
+        if (isOAuth1RequiredIdVerify(chain.request())) {
 
-                this.signerMcAssist.sign(request);
-                return chain.proceed(request.build());
-            }
-        } else {
-            if (isOAuth1RequiredIdVerify(chain.request())) {
-
-                this.signerIdVerify.sign(request);
-                return chain.proceed(request.build());
-            }
+            this.signerIdVerify.sign(request);
+            return chain.proceed(request.build());
         }
         return chain.proceed(chain.request());
     }
@@ -55,22 +42,12 @@ public class OkHttpOAuth1InterceptorCustom implements Interceptor {
                 "/medicare-cards",
                 "/driving-licenses",
                 "/user-verifications",
-                "/trust-scores"
-        );
-        return list.stream().anyMatch(entry -> request.url().uri().getPath().contains(entry));
-    }
-
-    private boolean isOAuth1RequiredAssist(Request request) {
-        List<String> list = Arrays.asList(
-                "/user-identities",
-                "/user-verifications",
-                "/trust-score",
+                "/trust-scores",
+                "/email-otps",
+                "/email-otp-verifications",
                 "/sms-otps",
-                "/sms-otp-verifications",
-                "/device-authentications",
-                "/device-authentication-verifications"
+                "/sms-otp-verifications"
         );
         return list.stream().anyMatch(entry -> request.url().uri().getPath().contains(entry));
     }
-
 }

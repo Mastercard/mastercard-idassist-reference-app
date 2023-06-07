@@ -19,45 +19,47 @@ package com.mastercard.developer.service.impl;
 import com.mastercard.developer.exception.ExceptionUtil;
 import com.mastercard.developer.service.SmsOtpService;
 import com.mastercard.dis.mids.ApiException;
-import com.mastercard.dis.mids.api.OtpApi;
-import com.mastercard.dis.mids.model.SMSOTP;
-import com.mastercard.dis.mids.model.SMSOTPGeneration;
-import com.mastercard.dis.mids.model.SMSOTPVerification;
-import com.mastercard.dis.mids.model.SMSOTPVerificationResult;
+import com.mastercard.dis.mids.api.SmsOtpApi;
+import com.mastercard.dis.mids.model.id.verification.Otp;
+import com.mastercard.dis.mids.model.id.verification.OtpVerification;
+import com.mastercard.dis.mids.model.id.verification.OtpVerificationResult;
+import com.mastercard.dis.mids.model.id.verification.SMSOtp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 public class SmsOtpServiceImpl implements SmsOtpService {
 
-    private final OtpApi otpApi;
+    private final SmsOtpApi otpApi;
     private final ExceptionUtil exceptionUtil;
 
+    @Value("${mastercard.client.encryption.enable:false}")
+    private Boolean encryptionEnabled;
+
     @Autowired
-    public SmsOtpServiceImpl(OtpApi otpApi, ExceptionUtil exceptionUtil) {
+    public SmsOtpServiceImpl(SmsOtpApi otpApi, ExceptionUtil exceptionUtil) {
         this.otpApi = otpApi;
         this.exceptionUtil = exceptionUtil;
     }
 
     @Override
-    public SMSOTP createOtpsSMS(SMSOTPGeneration smsOtp) {
+    public Otp createSMSOtp(SMSOtp smsOtp) {
         try {
-            return otpApi.createOtpsSMS(smsOtp);
+            return otpApi.sendSmsOtp(smsOtp, encryptionEnabled);
         } catch (ApiException e) {
             throw exceptionUtil.logAndConvertToServiceException(e);
         }
     }
 
     @Override
-    public SMSOTPVerificationResult createVerifyOtps(SMSOTPVerification otpVerification) {
+    public OtpVerificationResult createVerifyOtp(OtpVerification otpVerification) {
         try {
-            return otpApi.verifyOtps(otpVerification);
+            return otpApi.verifySmsOtp(otpVerification, encryptionEnabled);
         } catch (ApiException e) {
             throw exceptionUtil.logAndConvertToServiceException(e);
         }
     }
-
-
 }

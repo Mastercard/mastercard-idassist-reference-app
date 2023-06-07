@@ -16,8 +16,8 @@ limitations under the License.
 
 package com.mastercard.developer.example;
 
-import com.mastercard.dis.mids.model.IdentityPrefill;
-import com.mastercard.dis.mids.model.IdentityVerificationUserInfo;
+import com.mastercard.dis.mids.model.id.verification.IdentityPrefill;
+import com.mastercard.dis.mids.model.id.verification.IdentityVerificationUserInfo;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -27,26 +27,30 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserExample {
 
-    public static IdentityPrefill getIdentity() {
-        IdentityPrefill identityPrefill = new IdentityPrefill();
-        List<String> list = Arrays.asList("firstName", "lastName", "dob", "nationalId", "emailAddress");
+    public static com.mastercard.dis.mids.model.id.verification.IdentityPrefill getIdentity() {
+        com.mastercard.dis.mids.model.id.verification.IdentityPrefill identityPrefill = new IdentityPrefill();
+        List<String> list = Arrays.asList("firstName", "lastName", "dob", "nationalId", "emailAddress","address");
         identityPrefill.setCountryCode("US");
-        identityPrefill.setPhoneNumber("1112223333");
+        identityPrefill.setPhoneNumber("11122233344");
+        identityPrefill.setLast4ssn("2141");
+        identityPrefill.setDob("1975-09-21");
+        identityPrefill.setPerformEligibilityCheck(true);
         identityPrefill.setOptedInConsentStatus(true);
         identityPrefill.setScopedFields(list);
-        identityPrefill.setLast4ssn("2142");
 
         return identityPrefill;
     }
 
-    public static IdentityVerificationUserInfo getIdentityVerificationUserInfo() {
-        IdentityVerificationUserInfo identityVerificationUserInfo = new IdentityVerificationUserInfo();
+    public static com.mastercard.dis.mids.model.id.verification.IdentityVerificationUserInfo getIdentityVerificationUserInfo() {
+        com.mastercard.dis.mids.model.id.verification.IdentityVerificationUserInfo identityVerificationUserInfo = new IdentityVerificationUserInfo();
 
         identityVerificationUserInfo.setPhoneNumber("13143039289");
         identityVerificationUserInfo.setFirstName("John");
         identityVerificationUserInfo.setLastName("Smith");
+        identityVerificationUserInfo.setEmailAddress("abc@def.com");
         identityVerificationUserInfo.setOptedInConsentStatus(true);
         identityVerificationUserInfo.setCountryCode("US");
+        identityVerificationUserInfo.setNationalId("666739999");
         identityVerificationUserInfo.setAddress("11 Faux Street");
         identityVerificationUserInfo.setExtendedAddress("Apt. 202");
         identityVerificationUserInfo.setCity("New York");
@@ -54,11 +58,7 @@ public class UserExample {
         identityVerificationUserInfo.setPostalCode("80022");
         identityVerificationUserInfo.setDob("1984-12-11");
         identityVerificationUserInfo.setLast4ssn("6789");
-        identityVerificationUserInfo.setNationalId("666739999");
-        identityVerificationUserInfo.setEmailAddress("abc@def.com");
 
         return identityVerificationUserInfo;
     }
-
-
 }

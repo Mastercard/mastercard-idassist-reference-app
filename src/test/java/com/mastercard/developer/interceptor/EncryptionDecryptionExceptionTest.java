@@ -7,14 +7,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
- class EncryptionDecryptionExceptionTest {
+class EncryptionDecryptionExceptionTest {
 
     @Test
-   void EncryptionDecryptionException_Test(){
+    void EncryptionDecryptionException_Test() {
         Exception cause = new Exception();
 
-        EncryptionDecryptionException encryptionDecryptionException = new EncryptionDecryptionException("test",cause);
+        EncryptionDecryptionException encryptionDecryptionException = new EncryptionDecryptionException("test", cause);
         Assertions.assertNotNull(encryptionDecryptionException);
-   }
-
+    }
 }
